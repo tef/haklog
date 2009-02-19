@@ -8,11 +8,25 @@ digit(D) --> [D], {code_type(D, digit)}.
 alnums([H|T]) --> alnum(H), alnums(T).
 alnums([]) --> [].
 
+csyms([H|T]) --> csym(H), csyms(T).
+csyms([]) --> [].
+
+alphas([H|T]) --> alpha(H), alphas(T).
+alphas([]) --> [].
+
 alnum(A) --> [A], {code_type(A, alnum)}.
+alpha(A) --> [A], {code_type(A, alpha)}.
 csym(C) --> [C], {code_type(C, csymf)}.
 
-identifier(id(A)) --> csym(C), alnums(N), {string_to_atom([C|N],A)},!. 
+identifier(id(A)) --> alpha(C), csyms(N), {string_to_atom([C|N],A)},!. 
 variable(var(A)) --> "$", alnums(N), {string_to_atom(N,A)},!.
+variable('_') --> "_",!.
+
+string(S) --> "\"", chars(S).
+
+chars([]) --> "\"".
+chars(["\""|T]) --> "\\\"", chars(T).
+chars([H|T]) --> [H], chars(T).
 
 ws0 --> [X], {code_type(X, white)}, ws.
 ws --> ws0.
@@ -21,66 +35,130 @@ ws --> [].
 item(E) --> number(E),!.
 item(E) --> identifier(E),!.
 item(E) --> variable(E),!.
+item(E) --> string(E),!.
+
+block([H|T],N) --> exprn(H,N), ws,!, block(T,N).
+block(X,N) --> ";", ws,!, block(X,N).
+block([],_) --> [].
 
 exprl([H|T],N) --> exprn(H,N), ws,!, exprl(T,N).
-exprl([],_) --> ";", ws.
 exprl([],_) --> [].
 
 exprl(L) --> ws,exprl(L, 100).
 expr(L) --> ws,exprn(L,100).
+block([block|L]) --> ws, block(L,100).
 
-exprn(O,N1) --> identifier(id(X)) , command(N), { N < N1 }, ws0, exprl(L,N), follow(command(X,L), O, N1). 
-exprn(O,N1) --> prefix(R,Op, N), { N =< N1 }, exprn(R,N), !, follow(Op, O, N1).
+exprn(O,N1) --> identifier(id(X)), ws,!,{90 < N1}, exprl(L,90), !,follow([X|L], O, N1). 
+exprn(O,N1) --> prefix(Op, N), { N =< N1 }, ws, exprn(R,N), !, follow([Op,R], O, N1).
+exprn(O,N1) --> "(" , identifier(id(X)), ws0, exprl(L,90), ws, ")", follow([quote|[X|L]], O, N1). 
 exprn(O,N1) --> "(" , exprn(Op, 100) , ")" , follow(Op, O ,N1).
-exprn(O,N1) --> "[" ,  exprl(Op, 90) , "]" , follow(Op, O ,N1).
-exprn(O,N1) --> "{" , exprl(Op, 100) , "}" , follow(Op, O ,N1).
+exprn(O,N1) --> "[" ,  exprl(Op, 90) , "]" , follow([list|Op], O ,N1).
+exprn(O,N1) --> "{" , block(Op, 100) , "}" , follow([block|Op], O ,N1).
 exprn(O,N) --> ws, item(L), follow(L,O,N).
 
 follow(L,O,N1) --> "[" ,  exprl(Op, 90) , "]" , follow(index(L,Op), O ,N1).
-follow(L,O,N1) --> ws, infix(L,R,Op,As,N), {assoc(As,N, N1)},ws, exprn(R,N),!, follow(Op, O, N1).
-follow(L,O,N1) --> ws, postfix(L,Op,N), {N =< N1}, follow(Op, O, N1).
-follow(O,O,_) --> ";",[].
-follow(O,O,_) --> [].
+follow(L,O,N1) --> ws, infix(Op,As,N), {assoc(As,N, N1)}, !,ws, exprn(R,N),!, follow([Op,L,R], O, N1).
+follow(L,O,N1) --> ws, postfix(Op,N), {N =< N1}, follow([Op,L], O, N1).
+follow(O,O,_) --> ws.
 
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
 
-command(90) --> [].
+infix(def, right, 99) --> ":-".
+infix(unf, left,90) --> "=".
+infix(le, right,60) --> ">=".
+infix(ge,right,60) --> "=<".
+infix(gt,right,60) --> ">".
+infix(lt,right,60) --> "<".
+infix(cons,right,55) --> ",".
+infix(add,right,50) --> "+".
+infix(sub,right,50) --> "-".
+infix(mul,right,45) --> "*".
+infix(div,right,45) --> "/".
+infix(conj,right,95) --> "&&". 
+infix(and,right,95) --> "and".
+infix(disj,right,96) --> "||".
+infix(or,right,96) --> "or".
+infix(in,right,60) --> "in".
 
-infix(A,B,def(A,B), right, 99) --> ":-".
-infix(A,B,A=B, left,90) --> "=".
-infix(A,B,A=<B,right,60) --> ">=".
-infix(A,B,A>=B,right,60) --> "=<".
-infix(A,B,A<B,right,60) --> ">".
-infix(A,B,A>B,right,60) --> "<".
-infix(A,B,(A,B),right,55) --> ",".
-infix(A,B,A+B,right,50) --> "+".
-infix(A,B,A-B,right,50) --> "-".
-infix(A,B,A*B,right,45) --> "*".
-infix(A,B,A/B,right,45) --> "/".
-infix(A,B,conj(A,B),right,95) --> "&&".
-infix(A,B,and(A,B),right,95) --> "and".
-infix(A,B,disj(A,B),right,96) --> "||".
-infix(A,B,or(A,B),right,96) --> "or".
-infix(A,B,in(A,B),right,60) --> "in".
+prefix(not,10) --> "!".
+prefix(quote,10) --> "'".
+postfix(post,5) --> "?".
 
-prefix(A,not(A),10) --> "!".
-prefix(A,quote(A),10) --> "'".
-postfix(A,post(A),5) --> "?".
+parse(X,S) :- phrase(block(S),X),!.
+
+exec(X,E,O) :-
+    parse(X,S),
+    eval([],E,S,O).
+
+evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
+
+eval(E,E,X,X) :- number(X); X = [].
+
+eval(E,E,[quote|X], X) :- !.
+eval(E,E,['_'], _) :- !.
+eval(Ei,Eo,[list|X],O) :- !,eval_list(Ei,Eo,X,O).
+eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,[],O).
+eval(Ei,Eo,var(X),O) :- !,variable(Ei,Eo,X,O),!.
+eval(Ei,Eo,[def,X,Y],[]) :- !,define(Ei,Eo,X,Y),!.
+
+eval(E,Eo,[and,X,Y],Z) :- !,eval(E,E1,X,_),!,eval(E1,Eo,Y,Z).
+eval(E,Eo,[or,X,Y],Z) :- !,evalone(E,Eo,X,Z); eval(E,Eo,Y,Z).
+
+eval(E,Eo,[conj,X,Y],Z) :-!, eval(E,E1,X,_), eval(E1,Eo,Y,Z).
+eval(E,Eo,[disj,X,Y],Z) :-!, eval(E,Eo,X,Z); eval(E,Eo,Y,Z).
+
+eval(E,E,P,A) :- P = [C|T], fun_list(E,F,C), subst_args(E,E1,T,To),!,eval_fun(E1,F,[C|To],A).
+eval(E,Eo,[H|T],O) :- atom(H),!, eval_list(E,Eo,T,To), applyonce(H,To,O).
+
+eval_list(E,E,[],[]).
+eval_list(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho) , eval_list(E1,Eo,T,To).
+
+eval_block(E,E,[],X,X).
+eval_block(E,Eo,[H|T],_,X) :- eval(E,E1,H,O) , eval_block(E1,Eo,T,O,X).
+
+variable([K-V|T],[K-V|T],K,V) :-!.
+variable([K-V|T],[K-V|To],X,O) :- variable(T,To,X,O),!.
+variable(E,[K-V|E],K,V):- !.
+
+subst_args(E,E,[],[]).
+subst_args(E,Eo,var(X),O) :- variable(E,Eo,X,O).
+subst_args(E,E,'_',_).
+subst_args(E,Eo,[list|X],O) :- subst_args(E,Eo,X,O).
+subst_args(E,Eo,[cons,H,T],[Ho|To]) :- subst_args(E,E1,H,Ho), subst_args(E1,Eo,T,To).
+subst_args(E,Eo,[H|T],[Ho|To]) :- subst_args(E,E1,H,Ho), subst_args(E1,Eo,T,To).
+subst_args(E,E,X,X).
+
+eval_fun(E,[X-A-V|_],[X|In],O) :- bind_args(E,Eo,A,In), eval(Eo,_,V,O), write(O).
+eval_fun(E,[_|T],X,O) :- !, eval_fun(E,T,X,O).
+
+fun_list([],[],_).
+fun_list([X-A-V|T],[X-A-V|O],X) :- fun_list(T,O,X).
+fun_list([_|T],O,X) :- fun_list(T,O,X).
+
+bind_args(E,E,[],[]):- !.
+bind_args(E,Eo,var(X),O) :- variable(E,Eo,X,Op),!, O=Op,!.
+bind_args(E,E,'_',_) :-!.
+bind_args(E,Eo,[cons,X,Y],[Xa|Ya]) :- !, bind_args(E,E1,X,Xa),!, bind_args(E1,Eo,Y,Ya).
+bind_args(E,Eo,[list|X],Xa) :-!, bind_args(E,Eo,X,Xa).
+bind_args(E,Eo,[H|T], [Ho|To]) :-!, bind_args(E,E1,H,Ho),!, bind_args(E1,Eo,T,To).
+bind_args(E,E,X,X) :- !.
 
 
-exec(X,O) :-
-    phrase(expr(S),X),!,
-    eval(S,O).
+define(T,O ,[X|A],Y)  :- append(T, [X-A-Y],O).
 
+applyonce(X,Y,Z) :- apply(X,Y,Z),!.
 
-eval(X,X) :- number(X); X = [].
-
-eval(quote(X), X).
-eval(X+Y,Z) :- Z is X+Y.
-eval(X*Y,Z) :- Z is X*Y.
-eval(X-Y,Z) :- Z is X-Y.
-eval(X/Y,Z) :- Z is X/Y.
+apply(add,[X,Y],O) :- O is X+Y .
+apply(sub,[X,Y],O) :- O is X-Y .
+apply(mul,[X,Y],O) :- O is X*Y .
+apply(div,[X,Y],O) :- O is X/Y .
+apply(unf,[X,Y],Y) :- X=Y.
+apply(lt,[X,Y],Y) :-  X <Y.
+apply(le,[X,Y],Y) :-  X =<Y.
+apply(gt,[X,Y],Y) :-  X >Y.
+apply(ge,[X,Y],Y) :-  X >=Y.
+apply(cons,[X,Y],[X|Y]).
 
 
 
