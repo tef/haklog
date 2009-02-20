@@ -26,7 +26,7 @@ identifier(A) --> alpha(C), csyms(N), {string_to_atom([C|N],A)},!.
 variable(id(A)) --> "$", alnums(N), {string_to_atom(N,A)},!.
 variable(id('_')) --> "_",!.
 
-string([list|S]) --> "\"", chars(S).
+string([str|S]) --> "\"", chars(S).
 
 chars([]) --> "\"".
 chars(["\""|T]) --> "\\\"", chars(T).

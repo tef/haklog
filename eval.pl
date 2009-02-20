@@ -34,6 +34,7 @@ eval(_,_,id(fail),_) :- !,fail.
 eval(_,_,[id(fail)|_],_) :- !,fail.
 eval(E,E,X,X) :- number(X); X = [].
 eval(E,E,[quote,X], X) :- !.
+eval(E,E,[str|X], [str|X]) :- !.
 eval(Ei,Eo,[list|X],[list|O]) :- !,eval_list(Ei,Eo,X,O).
 eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,[],O).
 eval(Ei,Eo,id(X),O) :- !,variable(Ei,Eo,X,O).
@@ -110,7 +111,11 @@ apply(le,[X,Y],Y) :-  X =<Y,!.
 apply(gt,[X,Y],Y) :-  X >Y,!.
 apply(ge,[X,Y],Y) :-  X >=Y,!.
 apply(in,[X,[list|Y]],X) :-  member(X,Y).
-apply(say,[],[]):-!.
-apply(say,[H|T],[]) :- write(H),nl,!,apply(say,T,[]),!.
+apply(say,[],[]):-nl,!.
+apply(say,[H|T],[]) :- say(H),!,apply(say,T,[]),!.
 apply(cons,[X,[list]],[list,X]) :-!.
 apply(cons,[X,[list|Y]],[list|[X|Y]]):-!.
+
+say([str|X]) :- writef("%s ",[X]),!.
+say(X) :- writef("%t ",X),!.
+
