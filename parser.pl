@@ -77,12 +77,12 @@ expr(L) --> ws,exprn(L,100).
 block([block|L]) --> ws, block(L,100).
 
 %expressions
-exprn(O,N1) --> \+ infix(_,_,_), identifier(X), !, idfollow(O,X,N1). 
-exprn(O,N1) --> prefix(Op, N), { N =< N1 }, ws, exprn(R,N), !, follow([Op,R], O, N1).
-exprn(O,N1) --> "(" , ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
-exprn(O,N1) --> "[" , ws,  exprl(Op, 100), ws, "]" , follow([list|Op], O ,N1).
-exprn(O,N1) --> "{" , ws, block(Op, 100), ws, "}" , follow([block|Op], O ,N1).
-exprn(O,N) --> ws, item(L),  follow(L,O,N).
+exprn(O,N1) --> \+ infix(_,_,_), \+ postfix(_,_), identifier(X), !, idfollow(O,X,N1). 
+exprn(O,N1) --> prefix(Op, N),!, { N =< N1 }, ws, exprn(R,N), !, follow([Op,R], O, N1).
+exprn(O,N1) --> "(" ,!, ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
+exprn(O,N1) --> "[" ,!, ws,  exprl(Op, 100), ws, "]" , follow([list|Op], O ,N1).
+exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow([block|Op], O ,N1).
+exprn(O,N) --> item(L), !, follow(L,O,N).
 
 % follow parts
 idfollow(O,X,N1) --> {90 < N1},ws0, exprn(L1,90),!, exprl(L,90), !,follow([X|[L1|L]], O, N1). 
@@ -91,8 +91,8 @@ idfollow(O,X,N1) --> !,follow(id(X), O, N1).
 % every expression is ast-fragment then a follow. the fragment is passed
 % to follow, to check for infix stuff (that contains it)
 follow(L,O,N1) --> "[", ws, exprl(Op, 100), ws, "]" , follow(index(L,Op), O ,N1).
-follow(L,O,N1) --> ws, infix(Op,As,N), {assoc(As,N, N1)}, !,ws, exprn(R,N),!, follow([Op,L,R], O, N1).
-follow(L,O,N1) --> ws, postfix(Op,N), {N =< N1}, follow([Op,L], O, N1).
+follow(L,O,N1) --> ws, (infix(Op,As,N) -> {assoc(As,N, N1)}), !,ws, exprn(R,N),!, follow([Op,L,R], O, N1).
+follow(L,O,N1) --> ws, (postfix(Op,N) -> {N =< N1}), follow([Op,L], O, N1).
 follow(L,O,N1) --> ws, ":;" , {99 =< N1} , follow([def,L,[]], O, N1).
 follow(O,O,_) --> ws.
 
@@ -100,6 +100,7 @@ assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
 
 infix(def, right, 99) --> ":-".
+infix(if,left,94) --> "->".
 infix(unf, left,80) --> "=".
 infix(le, right,60) --> ">=".
 infix(ge,right,60) --> "=<".
@@ -114,7 +115,6 @@ infix(conj,right,95) --> "&&".
 infix(and,right,95) --> "and".
 infix(disj,right,96) --> "||".
 infix(or,right,96) --> "or".
-infix(or,right,94) --> "->".
 infix(in,right,60) --> "in".
 
 prefix(not,10) --> "!".
@@ -139,7 +139,7 @@ eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,[],O).
 eval(Ei,Eo,id(X),O) :- !,variable(Ei,Eo,X,O).
 eval(Ei,Eo,[def,X,Y],[]) :- !,define(Ei,Eo,X,Y),!.
 eval(E,Eo,[and,X,Y],Z) :- evalone(E,E1,X,_),eval(E1,Eo,Y,Z).
-eval(E,Eo,[if,X,Y],Z) :- (evalone(E,E1,X,O) -> (!, eval(E1,Eo,Y,Z))); !,Z =[].
+eval(E,Eo,[if,X,Y],Z) :- (evalone(E,E1,X,_) -> (!, eval(E1,Eo,Y,Z))); !,Z =[].
 eval(E,Eo,[or,X,Y],Z) :- evalone(E,Eo,X,Z); eval(E,Eo,Y,Z).
 eval(E,Eo,[conj,X,Y],Z) :- eval(E,E1,X,_), eval(E1,Eo,Y,Z).
 eval(E,Eo,[disj,X,Y],Z) :- eval(E,Eo,X,Z); eval(E,Eo,Y,Z).
