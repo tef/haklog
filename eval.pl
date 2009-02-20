@@ -1,4 +1,4 @@
-#!/usr/bin/swipl -q -t main -f 
+#!/usr/bin/swipl -q -t start -f 
 
 :- consult('parser.pl').
 
