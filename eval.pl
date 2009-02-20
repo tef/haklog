@@ -117,5 +117,5 @@ apply(cons,[X,[list]],[list,X]) :-!.
 apply(cons,[X,[list|Y]],[list|[X|Y]]):-!.
 
 say([str|X]) :- writef("%s ",[X]),!.
-say(X) :- writef("%t ",X),!.
+say(X) :- writef("%t ",[X]),!.
 
