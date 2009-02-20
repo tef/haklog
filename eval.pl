@@ -34,10 +34,10 @@ eval(_,_,id(fail),_) :- !,fail.
 eval(_,_,[id(fail)|_],_) :- !,fail.
 eval(E,E,X,X) :- number(X); X = [].
 eval(E,E,[quote,X], X) :- !.
-eval(E,E,[str|X], [str|X]) :- !.
-eval(Ei,Eo,[list|X],[list|O]) :- !,eval_list(Ei,Eo,X,O).
+eval(E,E,str(O), O) :- !.
+eval(Ei,Eo,[list|X],O) :- !,eval_list(Ei,Eo,X,O).
 eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,[],O).
-eval(Ei,Eo,id(X),O) :- !,variable(Ei,Eo,X,O).
+eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,X,O),!.
 eval(Ei,Eo,[def,X,Y],[]) :- !,define(Ei,Eo,X,Y),!.
 
 eval(E,Eo,[and,X,Y],Z) :- evalone(E,E1,X,_),!,eval(E1,Eo,Y,Z).
@@ -46,9 +46,10 @@ eval(E,Eo,[if|X],Z) :- eval_if(E,Eo,X,Z).
 eval(E,Eo,[or,X,Y],Z) :- evalone(E,Eo,X,Z); eval(E,Eo,Y,Z).
 eval(E,Eo,[all|X],Z) :- !,eval_block(E,Eo,X,[],Z).
 eval(E,Eo,[any|[H|T]],Z) :- eval(E,E1,H,Z) ; eval(E1,Eo,[any|T],Z).
-eval(E,Eo,[every|X],[list|Z]) :- findall(A,eval_block(E,Eo,X,[],A),Z),!.
+eval(E,Eo,[every|X],Z) :- findall(A,eval_block(E,Eo,X,[],A),Z),!.
 eval(E,Eo,[eval|T],A) :- subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,[],A).
 
+eval(E,E,id(C),A) :- fun_list(E,Ef,F,C),\+ F = [],!,eval_fun(Ef,F,[C],A).
 eval(E,Eo,[C|T],A) :- fun_list(E,Ef,F,C),\+ F = [],!,subst_args(E,Eo,T,To),!,eval_fun(Ef,F,[C|To],A).
 eval(E,Eo,[H|T],O) :- atom(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
 
@@ -68,6 +69,8 @@ subst_args(E,E,[],[]) :-!.
 subst_args(E,Eo,id(X),O) :- variable(E,Eo,X,O),!.
 subst_args(E,E,X,X) :- number(X); atom(X).
 subst_args(E,E,[quote,X],[quote,X]) :-!.
+subst_args(E,E,[list|X],X) :-!.
+subst_args(E,E,[cons,X,Y],[X|Y]) :-!.
 subst_args(E,Eo,[block|X],O) :- !,eval_block(E,Eo,X,[],O).
 subst_args(E,Eo,[H|T],[Ho|To]) :-  subst_args(E,E1,H,Ho),  subst_args(E1,Eo,T,To).
 
@@ -84,14 +87,16 @@ fun_list([_|T],Eo,O,X) :- fun_list(T,Eo,O,X),!.
 
 % bind the function def and calling arguments together
 bind_args(E,E,[],[]):- !.
+bind_args(E,E,[list],[]):- !.
 bind_args(E,Eo,id(X),O) :- variable(E,Eo,X,Op),!, O=Op,!.
-bind_args(E,Eo,[cons,X,Y],[list|[Xa|Ya]]) :- !, bind_args(E,E1,X,Xa),!, bind_args(E1,Eo,Y,[list|Ya]),!.
-bind_args(E,E1,[cons,X,[]],[list|Xa]) :- !, bind_args(E,E1,X,Xa),!.
+bind_args(E,Eo,[cons,X,Y],[Xa|Ya]) :- !, bind_args(E,E1,X,Xa),!, bind_args(E1,Eo,Y,Ya),!.
+bind_args(E,Eo,[list|X],Xa) :- !, bind_args(E,Eo,X,Xa),!. 
 bind_args(E,Eo,[H|T], [Ho|To]) :-!, bind_args(E,E1,H,Ho),!, bind_args(E1,Eo,T,To),!.
 bind_args(E,E,X,X) :- !.
 
 % state
 variable(E,E,'_',_):- !.
+variable([def(K,_)-_|_],_,K,_) :-!, fail.
 variable([K-V|E],[K-V|E],K,V) :-!.
 variable([K|T],[K|To],X,O) :- variable(T,To,X,O),!.
 variable(E,[K-V|E],K,V):- !.
@@ -110,12 +115,11 @@ apply(lt,[X,Y],Y) :-  X <Y,!.
 apply(le,[X,Y],Y) :-  X =<Y,!.
 apply(gt,[X,Y],Y) :-  X >Y,!.
 apply(ge,[X,Y],Y) :-  X >=Y,!.
-apply(in,[X,[list|Y]],X) :-  member(X,Y).
+apply(in,[X,Y],X) :-  member(X,Y).
 apply(say,[],[]):-nl,!.
 apply(say,[H|T],[]) :- say(H),!,apply(say,T,[]),!.
-apply(cons,[X,[list]],[list,X]) :-!.
-apply(cons,[X,[list|Y]],[list|[X|Y]]):-!.
+apply(cons,[X,Y],[X|Y]):-!.
 
-say([str|X]) :- writef("%s ",[X]),!.
+say(str(X)) :- writef("%s ",[X]),!.
 say(X) :- writef("%t ",[X]),!.
 
