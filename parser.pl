@@ -63,15 +63,15 @@ item(E) --> string(E),!.
 % containers
 
 % a block is { ... }, can have terminators
-
 block([H|T],N) --> exprn(H,N), ws,!, block(T,N).
 block(X,N) --> ";", ws,!, block(X,N).
 block([],_) --> [].
 
-% a list of expressions
+% a list of expressions (function args)
 exprl([H|T],N) --> exprn(H,N), ws,!, exprl(T,N).
 exprl([],_) --> [].
 
+%helpers
 exprl(L) --> ws,exprl(L, 100).
 expr(L) --> ws,exprn(L,100).
 block([block|L]) --> ws, block(L,100).
@@ -114,6 +114,7 @@ infix(conj,right,95) --> "&&".
 infix(and,right,95) --> "and".
 infix(disj,right,96) --> "||".
 infix(or,right,96) --> "or".
+infix(or,right,94) --> "->".
 infix(in,right,60) --> "in".
 
 prefix(not,10) --> "!".
@@ -138,6 +139,7 @@ eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,[],O).
 eval(Ei,Eo,id(X),O) :- !,variable(Ei,Eo,X,O).
 eval(Ei,Eo,[def,X,Y],[]) :- !,define(Ei,Eo,X,Y),!.
 eval(E,Eo,[and,X,Y],Z) :- evalone(E,E1,X,_),eval(E1,Eo,Y,Z).
+eval(E,Eo,[if,X,Y],Z) :- (evalone(E,E1,X,O) -> (!, eval(E1,Eo,Y,Z))); !,Z =[].
 eval(E,Eo,[or,X,Y],Z) :- evalone(E,Eo,X,Z); eval(E,Eo,Y,Z).
 eval(E,Eo,[conj,X,Y],Z) :- eval(E,E1,X,_), eval(E1,Eo,Y,Z).
 eval(E,Eo,[disj,X,Y],Z) :- eval(E,Eo,X,Z); eval(E,Eo,Y,Z).
