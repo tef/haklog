@@ -43,7 +43,7 @@ alpha(A) --> [A], {code_type(A, alpha)}.
 csym(C) --> [C], {code_type(C, csymf)}.
 
 identifier(A) --> alpha(C), csyms(N), {string_to_atom([C|N],A)},!. 
-variable(var(A)) --> "$", alnums(N), {string_to_atom(N,A)},!.
+variable(id(A)) --> "$", alnums(N), {string_to_atom(N,A)},!.
 variable('_') --> "_",!.
 
 string([list|S]) --> "\"", chars(S).
@@ -79,10 +79,9 @@ block([block|L]) --> ws, block(L,100).
 %expressions
 exprn(O,N1) --> \+ infix(_,_,_), identifier(X), !, idfollow(O,X,N1). 
 exprn(O,N1) --> prefix(Op, N), { N =< N1 }, ws, exprn(R,N), !, follow([Op,R], O, N1).
-exprn(O,N1) --> "(" , identifier(X), ws0, exprl(L,90), ws, ")", follow([quote|[X|L]], O, N1). 
-exprn(O,N1) --> "(" , exprn(Op, 100) , ")" , follow(Op, O ,N1).
-exprn(O,N1) --> "[" ,  exprl(Op, 90) , "]" , follow([list|Op], O ,N1).
-exprn(O,N1) --> "{" , block(Op, 100) , "}" , follow([block|Op], O ,N1).
+exprn(O,N1) --> "(" , ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
+exprn(O,N1) --> "[" , ws,  exprl(Op, 100), ws, "]" , follow([list|Op], O ,N1).
+exprn(O,N1) --> "{" , ws, block(Op, 100), ws, "}" , follow([block|Op], O ,N1).
 exprn(O,N) --> ws, item(L),  follow(L,O,N).
 
 % follow parts
@@ -91,16 +90,17 @@ idfollow(O,X,N1) --> !,follow(id(X), O, N1).
 
 % every expression is ast-fragment then a follow. the fragment is passed
 % to follow, to check for infix stuff (that contains it)
-follow(L,O,N1) --> "[" ,  exprl(Op, 90) , "]" , follow(index(L,Op), O ,N1).
+follow(L,O,N1) --> "[", ws, exprl(Op, 100), ws, "]" , follow(index(L,Op), O ,N1).
 follow(L,O,N1) --> ws, infix(Op,As,N), {assoc(As,N, N1)}, !,ws, exprn(R,N),!, follow([Op,L,R], O, N1).
 follow(L,O,N1) --> ws, postfix(Op,N), {N =< N1}, follow([Op,L], O, N1).
+follow(L,O,N1) --> ws, ":;" , {99 =< N1} , follow([def,L,[]], O, N1).
 follow(O,O,_) --> ws.
 
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
 
 infix(def, right, 99) --> ":-".
-infix(unf, left,90) --> "=".
+infix(unf, left,80) --> "=".
 infix(le, right,60) --> ">=".
 infix(ge,right,60) --> "=<".
 infix(gt,right,60) --> ">".
@@ -117,7 +117,8 @@ infix(or,right,96) --> "or".
 infix(in,right,60) --> "in".
 
 prefix(not,10) --> "!".
-prefix(quote,95) --> "'".
+prefix(quote,5) --> "'".
+prefix(eval,5) --> "`".
 postfix(post,5) --> "?".
 
 parse(X,S) :- phrase(block(S),X),!. 
@@ -130,16 +131,18 @@ exec(X,E,O) :-
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
 eval(E,E,X,X) :- number(X); X = [].
-eval(E,E,[quote|X], X) :- !.
+eval(E,E,[quote,X], X) :- !.
 eval(E,E,['_'], _) :- !.
 eval(Ei,Eo,[list|X],[list|O]) :- !,eval_list(Ei,Eo,X,O).
 eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,[],O).
+eval(Ei,Eo,id(fail),O) :- !,fail.
 eval(Ei,Eo,id(X),O) :- !,variable(Ei,Eo,X,O).
 eval(Ei,Eo,[def,X,Y],[]) :- !,define(Ei,Eo,X,Y),!.
 eval(E,Eo,[and,X,Y],Z) :- evalone(E,E1,X,_),eval(E1,Eo,Y,Z).
 eval(E,Eo,[or,X,Y],Z) :- evalone(E,Eo,X,Z); eval(E,Eo,Y,Z).
 eval(E,Eo,[conj,X,Y],Z) :- eval(E,E1,X,_), eval(E1,Eo,Y,Z).
 eval(E,Eo,[disj,X,Y],Z) :- eval(E,Eo,X,Z); eval(E,Eo,Y,Z).
+eval(E,Eo,[eval|T],A) :- subst_args(E,E1,T,To),eval_block(E1,Eo,To,[],A).
 eval(E,Eo,[C|T],A) :- fun_list(E,Ef,F,C),\+ F = [],!,subst_args(E,Eo,T,To),eval_fun(Ef,F,[C|To],A).
 eval(E,Eo,[H|T],O) :- atom(H),!, eval_list(E,Eo,T,To), applyonce(H,To,O).
 
@@ -155,13 +158,11 @@ variable(E,[K-V|E],K,V):- !.
 
 % substitute arguments for calling from environment
 subst_args(E,E,[],[]) :-!.
-subst_args(E,Eo,var(X),O) :- variable(E,Eo,X,O),!.
 subst_args(E,Eo,id(X),O) :- variable(E,Eo,X,O),!.
 subst_args(E,E,X,X) :- number(X); atom(X).
 subst_args(E,E,'_',_).
-%subst_args(E,Eo,[list|X],[list|O]) :-!, subst_args(E,Eo,X,O).
+subst_args(E,E,[quote,X],[quote,X]) :-!.
 subst_args(E,Eo,[block|X],O) :- !,eval_block(E,Eo,X,[],O).
-%subst_args(E,Eo,[cons,H,T],[cons,Ho,To]) :-!,  subst_args(E,E1,H,Ho),  subst_args(E1,Eo,T,To).
 subst_args(E,Eo,[H|T],[Ho|To]) :-  subst_args(E,E1,H,Ho),  subst_args(E1,Eo,T,To).
 
 % evaluate against a given list of functions
@@ -199,6 +200,7 @@ apply(lt,[X,Y],Y) :-  X <Y.
 apply(le,[X,Y],Y) :-  X =<Y.
 apply(gt,[X,Y],Y) :-  X >Y.
 apply(ge,[X,Y],Y) :-  X >=Y.
+apply(say,X,[]) :- write(X),!.
 apply(cons,[X,[list]],[list,X]).
 apply(cons,[X,[list|Y]],[list|[X|Y]]).
 
