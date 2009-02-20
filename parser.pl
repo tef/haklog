@@ -16,11 +16,7 @@ clean_arguments([H|T],_,O) :- clean_arguments(T,H,O).
 
 execute(I):-
     read_file(I,[],Code),
-    write(Code),
-    exec(Code,Env,Output),
-    write("woo"),
-    write(Env),
-    write(Output).
+    exec(Code,_,_).
 
 read_file(I,Li,Lo) :-  get_byte(I,C), ((C = -1,!,Lo=[]); Lo=[C|L1], read_file(I,Li,L1)).  
 % top down operator precedence parser 
@@ -61,6 +57,10 @@ ws0 --> [X], {code_type(X, white)}, ws.
 ws --> ws0.
 ws --> [].
 
+newline --> [10], linefeed. 
+
+linefeed --> [13]; [].
+
 item(E) --> number(E),!.
 item(E) --> variable(E),!.
 item(E) --> string(E),!.
@@ -70,6 +70,7 @@ item(E) --> string(E),!.
 % a block is { ... }, can have terminators
 block([H|T],N) --> exprn(H,N), ws,!, block(T,N).
 block(X,N) --> ";", ws,!, block(X,N).
+block(X,N) --> newline, ws,!, block(X,N).
 block([],_) --> [].
 
 % a list of expressions (function args)
@@ -85,7 +86,7 @@ block([block|L]) --> ws, block(L,100).
 exprn(O,N1) --> \+ infix(_,_,_), \+ postfix(_,_), identifier(X), !, idfollow(O,X,N1). 
 exprn(O,N1) --> prefix(Op, N),!, { N =< N1 }, ws, exprn(R,N), !, follow([Op,R], O, N1).
 exprn(O,N1) --> "(" ,!, ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
-exprn(O,N1) --> "[" ,!, ws,  exprl(Op, 100), ws, "]" , follow([list|Op], O ,N1).
+exprn(O,N1) --> "[" ,!, ws,  block(Op, 100), ws, "]" , follow([list|Op], O ,N1).
 exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow([block|Op], O ,N1).
 exprn(O,N) --> item(L), !, follow(L,O,N).
 
@@ -214,6 +215,7 @@ apply(lt,[X,Y],Y) :-  X <Y.
 apply(le,[X,Y],Y) :-  X =<Y.
 apply(gt,[X,Y],Y) :-  X >Y.
 apply(ge,[X,Y],Y) :-  X >=Y.
-apply(say,X,[]) :- write(X),!.
+apply(say,[],[]).
+apply(say,[H|T],[]) :- write(H),nl,!,apply(say,T,[]).
 apply(cons,[X,[list]],[list,X]).
 apply(cons,[X,[list|Y]],[list|[X|Y]]).
