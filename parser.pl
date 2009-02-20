@@ -44,7 +44,7 @@ csym(C) --> [C], {code_type(C, csymf)}.
 
 identifier(A) --> alpha(C), csyms(N), {string_to_atom([C|N],A)},!. 
 variable(id(A)) --> "$", alnums(N), {string_to_atom(N,A)},!.
-variable('_') --> "_",!.
+variable(id('_')) --> "_",!.
 
 string([list|S]) --> "\"", chars(S).
 
@@ -130,12 +130,11 @@ exec(X,E,O) :-
 
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
+eval(_,_,id(fail),_) :- !,fail.
 eval(E,E,X,X) :- number(X); X = [].
 eval(E,E,[quote,X], X) :- !.
-eval(E,E,['_'], _) :- !.
 eval(Ei,Eo,[list|X],[list|O]) :- !,eval_list(Ei,Eo,X,O).
 eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,[],O).
-eval(Ei,Eo,id(fail),O) :- !,fail.
 eval(Ei,Eo,id(X),O) :- !,variable(Ei,Eo,X,O).
 eval(Ei,Eo,[def,X,Y],[]) :- !,define(Ei,Eo,X,Y),!.
 eval(E,Eo,[and,X,Y],Z) :- evalone(E,E1,X,_),eval(E1,Eo,Y,Z).
@@ -152,6 +151,7 @@ eval_list(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho) , eval_list(E1,Eo,T,To).
 eval_block(E,E,[],X,X). 
 eval_block(E,Eo,[H|T],_,X) :- eval(E,E1,H,O) , eval_block(E1,Eo,T,O,X).
 
+variable(E,E,'_',_):- !.
 variable([K-V|E],[K-V|E],K,V) :-!.
 variable([K|T],[K|To],X,O) :- variable(T,To,X,O),!.
 variable(E,[K-V|E],K,V):- !.
@@ -160,7 +160,6 @@ variable(E,[K-V|E],K,V):- !.
 subst_args(E,E,[],[]) :-!.
 subst_args(E,Eo,id(X),O) :- variable(E,Eo,X,O),!.
 subst_args(E,E,X,X) :- number(X); atom(X).
-subst_args(E,E,'_',_).
 subst_args(E,E,[quote,X],[quote,X]) :-!.
 subst_args(E,Eo,[block|X],O) :- !,eval_block(E,Eo,X,[],O).
 subst_args(E,Eo,[H|T],[Ho|To]) :-  subst_args(E,E1,H,Ho),  subst_args(E1,Eo,T,To).
@@ -178,10 +177,8 @@ fun_list([_|T],Eo,O,X) :- fun_list(T,Eo,O,X).
 % bind the function def and calling arguments together
 bind_args(E,E,[],[]):- !.
 bind_args(E,Eo,id(X),O) :- variable(E,Eo,X,Op),!, O=Op,!.
-bind_args(E,E,'_',_) :-!.
 bind_args(E,Eo,[cons,X,Y],[list|[Xa|Ya]]) :- !, bind_args(E,E1,X,Xa),!, bind_args(E1,Eo,Y,[list|Ya]).
 bind_args(E,E1,[cons,X,[]],[list|Xa]) :- !, bind_args(E,E1,X,Xa),!.
-bind_args(E,Eo,[list|X],[list|Xa]) :-!, bind_args(E,Eo,X,Xa).
 bind_args(E,Eo,[H|T], [Ho|To]) :-!, bind_args(E,E1,H,Ho),!, bind_args(E1,Eo,T,To).
 bind_args(E,E,X,X) :- !.
 
@@ -203,7 +200,3 @@ apply(ge,[X,Y],Y) :-  X >=Y.
 apply(say,X,[]) :- write(X),!.
 apply(cons,[X,[list]],[list,X]).
 apply(cons,[X,[list|Y]],[list|[X|Y]]).
-
-
-
-
