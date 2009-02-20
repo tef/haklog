@@ -155,7 +155,7 @@ eval(E,Eo,[disj,X,Y],Z) :- eval(E,Eo,X,Z); eval(E,Eo,Y,Z).
 eval(E,Eo,[eval|T],A) :- subst_args(E,E1,T,To),eval_block(E1,Eo,To,[],A).
 
 eval(E,Eo,[C|T],A) :- fun_list(E,Ef,F,C),\+ F = [],!,subst_args(E,Eo,T,To),eval_fun(Ef,F,[C|To],A).
-eval(E,Eo,[H|T],O) :- atom(H),!, eval_list(E,Eo,T,To), applyonce(H,To,O).
+eval(E,Eo,[H|T],O) :- atom(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
 
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[E],O) :- !, eval(Ei,Eo,E,O).
@@ -204,18 +204,18 @@ define(T,O ,[X|A],Y)  :- append(T, [def(X,A)-Y],O),!.
 define(T,O ,id(X),Y)  :- append(T, [def(X,[])-Y],O),!.
 
 % builtin functions
-applyonce(X,Y,Z) :- apply(X,Y,Z),!.
 
-apply(add,[X,Y],O) :- O is X+Y .
-apply(sub,[X,Y],O) :- O is X-Y .
-apply(mul,[X,Y],O) :- O is X*Y .
+apply(add,[X,Y],O) :- O is X+Y,!.
+apply(sub,[X,Y],O) :- O is X-Y,!.
+apply(mul,[X,Y],O) :- O is X*Y,!.
 apply(div,[X,Y],O) :- O is X/Y .
-apply(unf,[X,Y],Y) :- X=Y.
-apply(lt,[X,Y],Y) :-  X <Y.
-apply(le,[X,Y],Y) :-  X =<Y.
-apply(gt,[X,Y],Y) :-  X >Y.
-apply(ge,[X,Y],Y) :-  X >=Y.
-apply(say,[],[]).
+apply(unf,[X,Y],Y) :- X=Y,!.
+apply(lt,[X,Y],Y) :-  X <Y,!.
+apply(le,[X,Y],Y) :-  X =<Y,!.
+apply(gt,[X,Y],Y) :-  X >Y,!.
+apply(ge,[X,Y],Y) :-  X >=Y,!.
+apply(in,[X,[list|Y]],X) :-  member(X,Y).
+apply(say,[],[]):-!.
 apply(say,[H|T],[]) :- write(H),nl,!,apply(say,T,[]).
-apply(cons,[X,[list]],[list,X]).
-apply(cons,[X,[list|Y]],[list|[X|Y]]).
+apply(cons,[X,[list]],[list,X]) :-!.
+apply(cons,[X,[list|Y]],[list|[X|Y]]):-!.
