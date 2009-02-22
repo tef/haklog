@@ -70,12 +70,11 @@ eval_block(E,Eo,[H|T],X) :-  eval(E,E1,H,_), !,eval_block(E1,Eo,T,X).
 
 
 % substitute arguments for calling from environment
-subst_args(E,Eo,id(X),O) :- variable(E,Eo,bind,X,O),!.
+subst_args(E,Eo,id(X),O) :- !,variable(E,Eo,bind,X,O).
 subst_args(E,E,[quote,X],[quote,X]) :-!.
-subst_args(E,E,[list|X],X) :-!.
 subst_args(E,E,[cons,X,Y],[X|Y]) :-!.
 subst_args(E,Eo,[block|X],O) :- !,eval_block(E,Eo,X,O).
-subst_args(E,Eo,[H|T],[Ho|To]) :-  subst_args(E,E1,H,Ho),  subst_args(E1,Eo,T,To).
+subst_args(E,Eo,[H|T],[Ho|To]) :-!, subst_args(E,E1,H,Ho),  subst_args(E1,Eo,T,To).
 subst_args(E,E,X,X) :- !.
 
 % bind the function def and calling arguments together

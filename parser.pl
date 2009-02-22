@@ -49,7 +49,7 @@ block([block|L]) --> ws, block(L,100).
 exprn(O,N1) --> \+ infix(_,_,_), \+ postfix(_,_), identifier(X), !, idfollow(O,X,N1). 
 exprn(O,N1) --> prefix(Op, N),!, { N =< N1 }, ws, exprn(R,N), !, follow([Op,R], O, N1).
 exprn(O,N1) --> "(" ,!, ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
-exprn(O,N1) --> "[" ,!, ws,  block(Op, 100), ws, "]" , follow([list|Op], O ,N1).
+exprn(O,N1) --> "[" ,!, ws,  block(Op, 90), ws, "]" , follow([list|Op], O ,N1).
 exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow([block|Op], O ,N1).
 exprn(O,N) --> item(L), !, follow(L,O,N).
 
