@@ -3,31 +3,16 @@
 
 % tokens
 number(N) --> digit(D0), digits(D), { number_chars(N, [D0|D]) },!.
-
 digits([D|T]) --> digit(D), digits(T).
 digits([]) --> [].
-
 digit(D) --> [D], {code_type(D, digit)}.
 
-alnums([H|T]) --> alnum(H), alnums(T).
-alnums([]) --> [].
-
+identifier(A) -->  csym(C),csyms(N), {string_to_atom([C|N],A)},!. 
 csyms([H|T]) --> csym(H), csyms(T).
 csyms([]) --> [].
-
-alphas([H|T]) --> alpha(H), alphas(T).
-alphas([]) --> [].
-
-alnum(A) --> [A], {code_type(A, alnum)}.
-alpha(A) --> [A], {code_type(A, alpha)}.
 csym(C) --> [C], {code_type(C, csymf)}.
 
-identifier(A) --> alpha(C), csyms(N), {string_to_atom([C|N],A)},!. 
-variable(id(A)) --> "$", alnums(N), {string_to_atom(N,A)},!.
-variable(id('_')) --> "_",!.
-
 string(str(S)) --> "\"", chars(S).
-
 chars([]) --> "\"".
 chars(["\""|T]) --> "\\\"", chars(T).
 chars([H|T]) --> [H], chars(T).
@@ -41,7 +26,6 @@ newline --> [10], linefeed.
 linefeed --> [13]; [].
 
 item(E) --> number(E),!.
-item(E) --> variable(E),!.
 item(E) --> string(E),!.
 
 % containers
@@ -88,6 +72,7 @@ infix(def, right, 99) --> ":-".
 infix(ifthen,left,85) --> "->".
 infix(unf, left,80) --> "=".
 infix(le, right,60) --> ">=".
+infix(eq, right,60) --> "==".
 infix(ge,right,60) --> "=<".
 infix(gt,right,60) --> ">".
 infix(lt,right,60) --> "<".
@@ -102,7 +87,8 @@ infix(any,right,96) --> "||".
 infix(or,right,96) --> "or".
 infix(in,right,60) --> "in".
 
-prefix(not,10) --> "!".
+prefix(not,94) --> "not".
+prefix(once,94) --> "once".
 prefix(quote,5) --> "'".
 prefix(eval,5) --> "`".
 postfix(post,5) --> "?".

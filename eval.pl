@@ -24,34 +24,38 @@ read_file(I,Li,Lo) :-  get_byte(I,C), ((C = -1,!,Lo=[]); Lo=[C|L1], read_file(I,
 
 % interpreter
 
-exec(X,E,O) :-
+exec(X,E,O) :- 
     parse(X,S),!,
     eval([],E,S,O).
 
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
+eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,O).
+eval(E,E,[quote,X], X) :- !.
+eval(E,E,[lambda|X], [lambda|X]) :- !.
+eval(Ei,Eo,[list|X],O) :- !,eval_list(Ei,Eo,X,O).
+eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,bind,X,O),!.
+eval(Ei,Eo,[def,[N|A],Y],[]) :- variable(Ei,Eo,def,N,[lambda,A,Y]),!.
+eval(Ei,Eo,[def,X,Y],[]) :- variable(Ei,Eo,def,X,Y),!.
 eval(_,_,id(fail),_) :- !,fail.
 eval(_,_,[id(fail)|_],_) :- !,fail.
-eval(E,E,X,X) :- number(X); X = [].
-eval(E,E,[quote,X], X) :- !.
 eval(E,E,str(O), O) :- !.
-eval(Ei,Eo,[list|X],O) :- !,eval_list(Ei,Eo,X,O).
-eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,[],O).
-eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,X,O),!.
-eval(Ei,Eo,[def,X,Y],[]) :- !,define(Ei,Eo,X,Y),!.
 
 eval(E,Eo,[and,X,Y],Z) :- evalone(E,E1,X,_),!,eval(E1,Eo,Y,Z).
+eval(E,E,[not,X],[]) :- \+ eval(E,_,X,_).
 eval(E,Eo,[ifthen,X,Y],Z) :- (evalone(E,E1,X,_) -> (!, eval(E1,Eo,Y,Z))); !,Z =[].
 eval(E,Eo,[if|X],Z) :- eval_if(E,Eo,X,Z). 
-eval(E,Eo,[or,X,Y],Z) :- evalone(E,Eo,X,Z); eval(E,Eo,Y,Z).
-eval(E,Eo,[all|X],Z) :- !,eval_block(E,Eo,X,[],Z).
+eval(E,Eo,[or,X,Y],Z) :- evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z).
+eval(E,Eo,[all|X],Z) :- !,eval_block(E,Eo,X,Z).
 eval(E,Eo,[any|[H|T]],Z) :- eval(E,E1,H,Z) ; eval(E1,Eo,[any|T],Z).
-eval(E,Eo,[every|X],Z) :- findall(A,eval_block(E,Eo,X,[],A),Z),!.
-eval(E,Eo,[eval|T],A) :- subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,[],A).
+eval(E,Eo,[every|X],Z) :- findall(A,eval_block(E,Eo,X,A),Z),!.
+eval(E,Eo,[eval|T],A) :- subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,A).
+eval(E,Eo,[once|T],A) :- subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,A),!.
 
-eval(E,E,id(C),A) :- fun_list(E,Ef,F,C),\+ F = [],!,eval_fun(Ef,F,[C],A).
-eval(E,Eo,[C|T],A) :- fun_list(E,Ef,F,C),\+ F = [],!,subst_args(E,Eo,T,To),!,eval_fun(Ef,F,[C|To],A).
+eval(E,Eo,[C|T],A) :- defined(E,C,F),subst_args(E,Eo,T,To),eval_fun(E,F,To,A).
 eval(E,Eo,[H|T],O) :- atom(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
+
+eval(E,E,X,X) :- number(X); X = [].
 
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[E],O) :- !, eval(Ei,Eo,E,O).
@@ -60,49 +64,42 @@ eval_if(Ei,Eo,[[ifthen,X,Y]|T],O) :- (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))
 eval_list(E,E,[],[]).
 eval_list(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho) , eval_list(E1,Eo,T,To).
 
-eval_block(E,E,[],X,X). 
-eval_block(E,Eo,[H|T],_,X) :- !, eval(E,E1,H,O), eval_block(E1,Eo,T,O,X).
+eval_block(E,E,[],[]). 
+eval_block(E,Eo,[H],O) :- !, eval(E,Eo,H,O).
+eval_block(E,Eo,[H|T],X) :-  eval(E,E1,H,_), !,eval_block(E1,Eo,T,X).
 
 
 % substitute arguments for calling from environment
-subst_args(E,E,[],[]) :-!.
-subst_args(E,Eo,id(X),O) :- variable(E,Eo,X,O),!.
-subst_args(E,E,X,X) :- number(X); atom(X).
+subst_args(E,Eo,id(X),O) :- variable(E,Eo,bind,X,O),!.
 subst_args(E,E,[quote,X],[quote,X]) :-!.
 subst_args(E,E,[list|X],X) :-!.
 subst_args(E,E,[cons,X,Y],[X|Y]) :-!.
-subst_args(E,Eo,[block|X],O) :- !,eval_block(E,Eo,X,[],O).
+subst_args(E,Eo,[block|X],O) :- !,eval_block(E,Eo,X,O).
 subst_args(E,Eo,[H|T],[Ho|To]) :-  subst_args(E,E1,H,Ho),  subst_args(E1,Eo,T,To).
-
-% evaluate against a given list of functions
-eval_fun(_,[],_,_) :- !,fail.
-eval_fun(Ef,[def(X,A)-V|_],[X|In],O) :- bind_args(Ef,Eo,A,In),eval(Eo,_,V,O).
-eval_fun(Ef,[_|T],X,O) :- !, eval_fun(Ef,T,X,O).
-
-% find all function defs, return a list of functions and an environment of defined things
-fun_list([],[],[],_) :- !.
-fun_list([def(X,A)-V|T],[def(X,A)-V|Eo],[def(X,A)-V|O],X) :- fun_list(T,Eo,O,X),!.
-fun_list([def(X,A)-V|T],[def(X,A)-V|Eo],O,F) :- fun_list(T,Eo,O,F),!.
-fun_list([_|T],Eo,O,X) :- fun_list(T,Eo,O,X),!.
+subst_args(E,E,X,X) :- !.
 
 % bind the function def and calling arguments together
-bind_args(E,E,[],[]):- !.
 bind_args(E,E,[list],[]):- !.
-bind_args(E,Eo,id(X),O) :- variable(E,Eo,X,Op),!, O=Op,!.
+bind_args(E,Eo,id(X),O) :- variable(E,Eo,bind,X,Op),!, O=Op,!.
 bind_args(E,Eo,[cons,X,Y],[Xa|Ya]) :- !, bind_args(E,E1,X,Xa),!, bind_args(E1,Eo,Y,Ya),!.
 bind_args(E,Eo,[list|X],Xa) :- !, bind_args(E,Eo,X,Xa),!. 
 bind_args(E,Eo,[H|T], [Ho|To]) :-!, bind_args(E,E1,H,Ho),!, bind_args(E1,Eo,T,To),!.
 bind_args(E,E,X,X) :- !.
 
-% state
-variable(E,E,'_',_):- !.
-variable([def(K,_)-_|_],_,K,_) :-!, fail.
-variable([K-V|E],[K-V|E],K,V) :-!.
-variable([K|T],[K|To],X,O) :- variable(T,To,X,O),!.
-variable(E,[K-V|E],K,V):- !.
+% evaluate against a given list of functions
+eval_fun(P,[any,A,B],T,O) :- !, (eval_fun(P,A,T,O); eval_fun(P,B,T,O)).
+eval_fun(P,[lambda,A,C],T,O) :-!,bind_args([],Eo,A,T),eval(['_'-P|Eo],_,C,O).
 
-define(T,O ,[X|A],Y)  :- append(T, [def(X,A)-Y],O),!.
-define(T,O ,id(X),Y)  :- append(T, [def(X,[])-Y],O),!.
+% find all function defs, return a list of functions and an environment of defined things
+defined(E,K,V) :- member(K-V,E).
+defined(E,K,V) :- !, member('_'-P,E), defined(P,K,V).
+
+% state
+variable(E,E,_,'_',_):- !.
+variable(E,[K-[any,Vi,V]|R],def,K,V) :- select(K-Vi, E, R),!.
+variable(E,E,bind,K,V) :- member(K-V,E),!.
+variable(E,[K-V|E],_,K,V):- !.
+
 
 % builtin functions
 
