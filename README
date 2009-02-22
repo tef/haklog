@@ -78,9 +78,7 @@ append h,t x :- h,{append t x}
 
 (warning, although things like
 [1 2 3 4] = {append x [3 4]}
-works, it doesn't work efficiently
-and will produce one solution and then backtrack
-forever)
+works, it doesn't work efficiently)
 
 if you load eval into swi prolog, you can get a semi repl:
 

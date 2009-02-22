@@ -53,7 +53,7 @@ eval(E,Eo,[eval|T],A) :- !,subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,A).
 eval(E,Eo,[once|T],A) :- !,subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,A),!.
 
 eval(E,Eo,[C|T],A) :- defined(E,C,F),subst_args(E,Eo,T,To),eval_fun(E,F,To,A).
-eval(E,Eo,[H|T],O) :- atom(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
+eval(E,Eo,[H|T],O) :- builtin(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
 
 eval(E,E,X,X) :- number(X); X = [].
 
@@ -76,7 +76,8 @@ eval_all(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_all(E1,Eo,T,O,X).
 subst_args(E,Eo,id(X),O) :- !,variable(E,Eo,bind,X,O).
 subst_args(E,E,[quote,X],[quote,X]) :-!.
 subst_args(E,E,[cons,X,Y],[X|Y]) :-!.
-subst_args(E,Eo,[block|X],O) :- !,eval_block(E,Eo,X,O).
+subst_args(E,Eo,[block|X],O) :- !, eval_block(E,Eo,X,O).
+subst_args(E,Eo,[list|T],To) :-!, subst_args(E,Eo,T,To).
 subst_args(E,Eo,[H|T],[Ho|To]) :-!, subst_args(E,E1,H,Ho),  subst_args(E1,Eo,T,To).
 subst_args(E,E,X,X) :- !.
 
@@ -104,20 +105,22 @@ variable(E,[K-V|E],_,K,V):- !.
 
 
 % builtin functions
-
-apply(add,[X,Y],O) :- O is X+Y,!.
-apply(sub,[X,Y],O) :- O is X-Y,!.
-apply(mul,[X,Y],O) :- O is X*Y,!.
-apply(div,[X,Y],O) :- O is X/Y .
-apply(unf,[X,Y],Y) :- X=Y,!.
-apply(lt,[X,Y],Y) :-  X <Y,!.
-apply(le,[X,Y],Y) :-  X =<Y,!.
-apply(gt,[X,Y],Y) :-  X >Y,!.
-apply(ge,[X,Y],Y) :-  X >=Y,!.
-apply(in,[X,Y],X) :-  member(X,Y).
+:- discontiguous builtin/1, apply/3.
+builtin(add). apply(add,[X,Y],O) :- O is X+Y,!.
+builtin(sub). apply(sub,[X,Y],O) :- O is X-Y,!.
+builtin(mul). apply(mul,[X,Y],O) :- O is X*Y,!.
+builtin(div). apply(div,[X,Y],O) :- O is X/Y .
+builtin(unf). apply(unf,[X,Y],Y) :- X=Y,!.
+builtin(eq). apply(eq,[X,Y],Y) :- X==Y,!.
+builtin(lt). apply(lt,[X,Y],Y) :-  X <Y,!.
+builtin(le). apply(le,[X,Y],Y) :-  X =<Y,!.
+builtin(gt). apply(gt,[X,Y],Y) :-  X >Y,!.
+builtin(ge). apply(ge,[X,Y],Y) :-  X >=Y,!.
+builtin(in). apply(in,[X,Y],X) :-  member(X,Y).
+builtin(say).
 apply(say,[],[]):-nl,!.
 apply(say,[H|T],[]) :- say(H),!,apply(say,T,[]),!.
-apply(cons,[X,Y],[X|Y]):-!.
+builtin(cons). apply(cons,[X,Y],[X|Y]):-!.
 
 say(str(X)) :- writef("%s ",[X]),!.
 say(X) :- writef("%t ",[X]),!.
