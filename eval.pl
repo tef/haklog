@@ -51,8 +51,8 @@ eval(E,Eo,[any|[H|T]],Z) :- !,(eval(E,E1,H,Z) ; eval(E1,Eo,[any|T],Z)).
 eval(E,Eo,[every|X],Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,[eval|T],A) :- !,str_unf(E,E1,T,To),!,eval_block(E1,Eo,To,A).
 eval(E,Eo,[once|T],A) :- !,str_unf(E,E1,T,To),!,eval_block(E1,Eo,To,A),!.
-eval(E,Eo,[unf,A,B],A) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,T,A1).
-eval(E,Eo,[in,A,B],A) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,B1), member(A1,B1).
+eval(E,Eo,[unf,A,B],A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,A1).
+eval(E,Eo,[in,A,B],A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,B1), member(A1,B1).
 eval(E,Eo,[H|T],O) :- builtin(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
 eval(E,Eo,[C|T],A) :- !,defined(E,C,F),str_unf(E,Eo,T,To),eval_fun(E,F,To,A).
 eval(E,E,X,X) :- number(X); X = [].

@@ -18,8 +18,8 @@ prolog   vs     haklog
 atom            'atom
 Variable        variable/Variable
 _               _
-X is 1+2        x = 1+2
-X = 1 + 2       x = '(1+2)
+X is 1+2        x = {1+2}
+X = 1 + 2       x = 1+2
 foo(X,Y)        foo x y
 predicates      functions
 !               n/a
@@ -51,8 +51,7 @@ are bound before calling:
 foo x y z    call the function foo with x y and z
 foo 1+2      call the function foo with the structure '1+2'
 
-however, everything else is evaluated: so x = 1+2 binds x to 3.
-you can use the quote operator to stop evaluation and binding.
+i.e. unification.
 
 here is an example block:
 
