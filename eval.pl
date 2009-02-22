@@ -49,7 +49,7 @@ eval(E,Eo,[all|X],Z) :- !,eval_all(E,Eo,X,[],Z).
 eval(E,Eo,[any|[H|T]],Z) :- !,(eval(E,E1,H,Z) ; eval(E1,Eo,[any|T],Z)).
 eval(E,Eo,[every|X],Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,[once|T],A) :- !,eval_block(E,Eo,T,A),!.
-eval(E,Eo,[eval|T],A) :- !,bind(E,E1,T,T1), eval_block(E1,Eo,T1,A).
+eval(E,Eo,[eval,T],A) :- !,bind(E,E1,T,T1), eval(E1,Eo,T1,A).
 eval(E,Eo,[unf,A,B],A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,A1).
 eval(E,Eo,[in,A,B],A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,B1), member(A1,B1).
 eval(E,Eo,[H|T],O) :- builtin(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
