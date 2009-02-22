@@ -48,8 +48,8 @@ eval(E,Eo,[if|X],Z) :- !,eval_if(E,Eo,X,Z).
 eval(E,Eo,[all|X],Z) :- !,eval_all(E,Eo,X,[],Z).
 eval(E,Eo,[any|[H|T]],Z) :- !,(eval(E,E1,H,Z) ; eval(E1,Eo,[any|T],Z)).
 eval(E,Eo,[every|X],Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
-eval(E,Eo,[eval|T],A) :- !,eval_block(E,Eo,T,A).
 eval(E,Eo,[once|T],A) :- !,eval_block(E,Eo,T,A),!.
+eval(E,Eo,[eval|T],A) :- !,bind(E,E1,T,T1), eval_block(E1,Eo,T1,A).
 eval(E,Eo,[unf,A,B],A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,A1).
 eval(E,Eo,[in,A,B],A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,B1), member(A1,B1).
 eval(E,Eo,[H|T],O) :- builtin(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
@@ -73,6 +73,12 @@ eval_all(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_all(E1,Eo,T,O,X).
 % evaluate against a given list of functions
 eval_fun(P,[any,A,B],T,O) :- !, (eval_fun(P,A,T,O); eval_fun(P,B,T,O)).
 eval_fun(P,[lambda,A,C],T,O) :-!,str_unf([],Eo,A,T),eval(['_'-P|Eo],_,C,O).
+
+bind(E,Eo,id(X),O) :- !, variable(E,Eo,bind,X,O).
+bind(E,E,[quote,X],[quote,X]) :-!.
+bind(E,Eo,[block|X],O) :- !, eval_block(E,Eo,X,O).
+bind(E,Eo,[H|T], [Ho|To]) :-!, bind(E,E1,H,Ho),!, bind(E1,Eo,T,To),!.
+bind(E,E,X,X) :- !.
 
 % strucural unification
 str_unf(E,E,[list],[]):- !.

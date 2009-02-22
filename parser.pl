@@ -91,6 +91,7 @@ prefix(not,94) --> "not".
 prefix(once,94) --> "once".
 prefix(quote,5) --> "'".
 prefix(eval,5) --> "`".
+prefix(unpack,5) --> "*".
 postfix(post,5) --> "?".
 
 parse(X,S) :- phrase(block(S),X),!. 
