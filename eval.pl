@@ -41,16 +41,16 @@ eval(_,_,id(fail),_) :- !,fail.
 eval(_,_,[id(fail)|_],_) :- !,fail.
 eval(E,E,str(O), O) :- !.
 
-eval(E,Eo,[and,X,Y],Z) :- evalone(E,E1,X,_),!,eval(E1,Eo,Y,Z).
-eval(E,E,[not,X],[]) :- \+ eval(E,_,X,_).
-eval(E,Eo,[ifthen,X,Y],Z) :- (evalone(E,E1,X,_) -> (!, eval(E1,Eo,Y,Z))); !,Z =[].
-eval(E,Eo,[if|X],Z) :- eval_if(E,Eo,X,Z). 
-eval(E,Eo,[or,X,Y],Z) :- evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z).
-eval(E,Eo,[all|X],Z) :- !,eval_block(E,Eo,X,Z).
-eval(E,Eo,[any|[H|T]],Z) :- eval(E,E1,H,Z) ; eval(E1,Eo,[any|T],Z).
-eval(E,Eo,[every|X],Z) :- findall(A,eval_block(E,Eo,X,A),Z),!.
-eval(E,Eo,[eval|T],A) :- subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,A).
-eval(E,Eo,[once|T],A) :- subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,A),!.
+eval(E,Eo,[and,X,Y],Z) :-!, evalone(E,E1,X,_),!,eval(E1,Eo,Y,Z).
+eval(E,Eo,[or,X,Y],Z) :- !,(evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z)).
+eval(E,E,[not,X],[]) :- \+ eval(E,_,X,_), !.
+eval(E,Eo,[ifthen,X,Y],Z) :- !,((evalone(E,E1,X,_) -> (!, eval(E1,Eo,Y,Z))); !,Z =[]).
+eval(E,Eo,[if|X],Z) :- !,eval_if(E,Eo,X,Z). 
+eval(E,Eo,[all|X],Z) :- !,eval_all(E,Eo,X,[],Z).
+eval(E,Eo,[any|[H|T]],Z) :- !,(eval(E,E1,H,Z) ; eval(E1,Eo,[any|T],Z)).
+eval(E,Eo,[every|X],Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
+eval(E,Eo,[eval|T],A) :- !,subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,A).
+eval(E,Eo,[once|T],A) :- !,subst_args(E,E1,T,To),!,eval_block(E1,Eo,To,A),!.
 
 eval(E,Eo,[C|T],A) :- defined(E,C,F),subst_args(E,Eo,T,To),eval_fun(E,F,To,A).
 eval(E,Eo,[H|T],O) :- atom(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
@@ -67,6 +67,9 @@ eval_list(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho) , eval_list(E1,Eo,T,To).
 eval_block(E,E,[],[]). 
 eval_block(E,Eo,[H],O) :- !, eval(E,Eo,H,O).
 eval_block(E,Eo,[H|T],X) :-  eval(E,E1,H,_), !,eval_block(E1,Eo,T,X).
+
+eval_all(E,E,[],X,X). 
+eval_all(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_all(E1,Eo,T,O,X).
 
 
 % substitute arguments for calling from environment
