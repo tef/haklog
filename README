@@ -1,0 +1,107 @@
+haklog is a functional dialect of prolog without the cut.
+
+a quick overview of the differences: 
+
+classic prolog example:
+
+    member(X,[X|_]).
+    member(X,[_|T]) :- member(X,T).
+
+the same in haklog:
+
+    member x x,_:;
+    member x _,t :- member x t
+
+prolog   vs     haklog
+[H|T]           h,t
+[1,2,3]         [1 2 3]
+atom            'atom
+Variable        variable/Variable
+_               _
+X is 1+2        x = 1+2
+X = 1 + 2       x = '(1+2)
+foo(X,Y)        foo x y
+predicates      functions
+!               n/a
+foo.            foo :;
+foo :- bar      foo :- bar
+foo, bar        foo && bar
+foo, !, bar     foo and bar   {foo; bar}
+foo ; bar       foo || bar   
+(foo,!); bar    foo or bar
+foo -> bar      foo -> bar
+                if (foo -> bar)* expr
+fail            fail
+member(X,Y)     X in Y
+write           say
+
+findall(X,foo(X),L)
+                L = every foo x
+call(X)         eval x
+
+a rough overview of the syntax - check parser.pl for specifics 
+
+haklog syntax is inspired by tk in that when you call a function
+the arguments are not evaluated but treated like a string. haklog
+does not evaulate the arguments, but like prolog it binds variables.
+
+haklog is like prolog in that arguments are not evaluated, but variables
+are bound before calling:
+
+foo x y z    call the function foo with x y and z
+foo 1+2      call the function foo with the structure '1+2'
+
+however, everything else is evaluated: so x = 1+2 binds x to 3.
+you can use the quote operator to stop evaluation and binding.
+
+here is an example block:
+
+foo x y :- {
+    z = {bar x}
+    x * 2
+}
+
+{}'s can have spaces,newlines or ; seperating statements. same for []'s  ()'s can
+only contain one statement
+
+here is a list: [1 2 3 4] if I call 
+foo [1+2 3+4], it recieves  a list containing 1+2 3+4
+but x = [1+2 3+4], x = [3 7]
+
+foo followed by items is a function call
+foo on it's own is a variable.
+
+here is another example: append
+
+append [] x :- x
+append h,t x :- h,{append t x}
+
+(warning, although things like
+[1 2 3 4] = {append x [3 4]}
+works, it doesn't work efficiently
+and will produce one solution and then backtrack
+forever)
+
+if you load eval into swi prolog, you can get a semi repl:
+
+?- exec("1 or 2 or 3",Env,Res).
+Env = [],
+Res = 1 ;
+Env = [],
+Res = 2 ;
+Env = [],
+Res = 3 ;
+false.
+
+
+todo: less bugs, more documentation, less code.
+
+possible language features:
+    aggregate operators  3 + list is  {every (X in list && 3 + X)}
+    closures ? anonymous function defs (maybe (_ x y) :- foo)
+    string operations ? more sugar ? case statements? 
+    message passing? erlang-like concurrency ? modules ? libraries?
+    i/o ? difference lists? pegs? dcgs?
+    mutable assignment?
+    xml literals? url literals?
+
