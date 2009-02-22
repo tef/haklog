@@ -33,7 +33,6 @@ evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 eval(Ei,Eo,[block|X],O) :-!, eval_block(Ei,Eo,X,O).
 eval(E,E,[quote,X], X) :- !.
 eval(E,E,[lambda|X], [lambda|X]) :- !.
-eval(Ei,Eo,[list|X],O) :- !,eval_list(Ei,Eo,X,O).
 eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,bind,X,O),!.
 eval(Ei,Eo,[def,[N|A],Y],[]) :- variable(Ei,Eo,def,N,[lambda,A,Y]),!.
 eval(Ei,Eo,[def,X,Y],[]) :- variable(Ei,Eo,def,X,Y),!.
@@ -49,8 +48,8 @@ eval(E,Eo,[if|X],Z) :- !,eval_if(E,Eo,X,Z).
 eval(E,Eo,[all|X],Z) :- !,eval_all(E,Eo,X,[],Z).
 eval(E,Eo,[any|[H|T]],Z) :- !,(eval(E,E1,H,Z) ; eval(E1,Eo,[any|T],Z)).
 eval(E,Eo,[every|X],Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
-eval(E,Eo,[eval|T],A) :- !,str_unf(E,E1,T,To),!,eval_block(E1,Eo,To,A).
-eval(E,Eo,[once|T],A) :- !,str_unf(E,E1,T,To),!,eval_block(E1,Eo,To,A),!.
+eval(E,Eo,[eval|T],A) :- !,eval_block(E,Eo,T,A).
+eval(E,Eo,[once|T],A) :- !,eval_block(E,Eo,T,A),!.
 eval(E,Eo,[unf,A,B],A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,A1).
 eval(E,Eo,[in,A,B],A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,B1), member(A1,B1).
 eval(E,Eo,[H|T],O) :- builtin(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
@@ -111,6 +110,7 @@ builtin(say).
 apply(say,[],[]):-nl,!.
 apply(say,[H|T],[]) :- say(H),!,apply(say,T,[]),!.
 builtin(cons). apply(cons,[X,Y],[X|Y]):-!.
+builtin(list). apply(list,X,X):-!.
 
 say(str(X)) :- writef("%s ",[X]),!.
 say(X) :- writef("%t ",[X]),!.
