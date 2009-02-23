@@ -46,7 +46,7 @@ the arguments are not evaluated but treated like a string. haklog
 does not evaulate the arguments, but like prolog it binds variables.
 
 haklog is like prolog in that arguments are not evaluated, but variables
-are bound before calling:
+are bound before  unifying.
 
 foo x y z    call the function foo with x y and z
 foo 1+2      call the function foo with the structure '1+2'
@@ -65,7 +65,13 @@ only contain one statement
 
 here is a list: [1 2 3 4] if I call 
 foo [1+2 3+4], it recieves  a list containing 1+2 3+4
-but x = [1+2 3+4], x = [3 7]
+x = [1+2 3+4] also does not evaluate arguments.
+
+so: 1+2 - expression, evaluated
+x = 1+2 - unification, 1+2 is not evaluated
+foo 1+2 - unification again
+foo {1+2} - explicit expression, evaluated.
+
 
 foo followed by items is a function call
 foo on it's own is a variable.
