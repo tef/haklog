@@ -34,7 +34,7 @@ eval(_,_,call(id(fail),_),_) :- !,fail.
 eval(_,_,id(fail),_) :- !,fail.
 eval(E,E,[],[]) :-!.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
-eval(E,E,call(quote(X)), X) :- !.
+eval(E,E,call(quote,[X]), X) :- !.
 eval(E,E,lambda(X,Y), lambda(X,Y)) :- !.
 eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,bind,X,O),!.
 eval(Ei,Eo,call(def,[call(N,A)|Y]),[]) :- variable(Ei,Eo,def,N,lambda(A,Y)),!.
@@ -49,9 +49,11 @@ eval(E,Eo,call(all,X),Z) :- !,eval_all(E,Eo,X,[],Z).
 eval(E,Eo,call(any,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; eval(E1,Eo,call(any,T),Z)).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval_block(E,Eo,T,A),!.
-
+eval(E,Eo,call(unf,[A,B]),A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,A1).
 eval(E,Eo,call(in,[A,B]),A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,B1), member(A1,B1).
-eval(E,Eo,call(H,T),O) :- builtin(H),!, eval_list(E,Eo,T,To), apply(H,To,O).
+eval(E,Eo,evalcall(H,T),O) :- !,eval(E,E1,H,Ho), eval(E1,Eo,call(Ho,T),O).
+eval(E,Eo,call(lambda(A,C),T),O) :- str_unf(E,Eo,T,To),eval_fun(E,[lambda(A,C)],To,O).
+eval(E,Eo,call(H,T),O) :- builtin(H),!, eval(E,Eo,T,To), apply(H,To,O).
 eval(E,Eo,call(C,T),A) :- !,defined(E,C,F),str_unf(E,Eo,T,To),eval_fun(E,F,To,A).
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
 eval(E,E,X,X) :- number(X).
@@ -59,9 +61,6 @@ eval(E,E,X,X) :- number(X).
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[E],O) :- !, eval(Ei,Eo,E,O).
 eval_if(Ei,Eo,[call(ifthen,[X,Y])|T],O) :- (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))); eval_if(Ei,Eo,T,O). 
-
-eval_list(E,E,[],[]).
-eval_list(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho) , eval_list(E1,Eo,T,To).
 
 eval_block(E,E,[],[]). 
 eval_block(E,Eo,[H],O) :- !, eval(E,Eo,H,O).
@@ -74,18 +73,17 @@ eval_all(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_all(E1,Eo,T,O,X).
 eval_fun(P,call(any,[A,B]),T,O) :- !, (eval_fun(P,A,T,O); eval_fun(P,B,T,O)).
 eval_fun(P,lambda(A,C),T,O) :-!,str_unf([],Eo,A,T),eval_block(['_'-P|Eo],_,C,O).
 
-bind(E,Eo,id(X),O) :- !, variable(E,Eo,bind,X,O).
-bind(E,E,call(quote,X),call(quote,X)) :-!.
-bind(E,Eo,block(X),O) :- !, eval_block(E,Eo,X,O).
-bind(E,Eo,[H|T], [Ho|To]) :-!, bind(E,E1,H,Ho),!, bind(E1,Eo,T,To),!.
-bind(E,E,X,X) :- !.
-
 % strucural unification
 str_unf(E,Eo,id(X),O) :- !, variable(E,Eo,bind,X,O).
-str_unf(E,E,call(quote,X),call(quote,X)) :-!.
+str_unf(E,Eo,call(quote,[X]),Y) :- !, quote_unf(E,Eo,X,Y).
 str_unf(E,Eo,block(X),O) :- !, eval_block(E,Eo,X,O).
 str_unf(E,Eo,[H|T], [Ho|To]) :-!, str_unf(E,E1,H,Ho),!, str_unf(E1,Eo,T,To),!.
+str_unf(E,Eo,call(H,T), call(H,To)) :-!, str_unf(E,Eo,T,To),!.
 str_unf(E,E,X,X) :- !.
+
+quote_unf(E,E,id(X),X) :- !.
+quote_unf(E,Eo,[H|T], [Ho|To]) :-!, quote_unf(E,E1,H,Ho),!, quote_unf(E1,Eo,T,To),!.
+quote_unf(E,E,X,X) :- !.
 
 % find all function defs, return a list of functions and an environment of defined things
 defined(E,K,V) :- member(K-V,E).
