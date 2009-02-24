@@ -41,10 +41,6 @@ call(X)         eval x
 
 a rough overview of the syntax - check parser.pl for specifics 
 
-haklog syntax is inspired by tk in that when you call a function
-the arguments are not evaluated but treated like a string. haklog
-does not evaulate the arguments, but like prolog it binds variables.
-
 haklog is like prolog in that arguments are not evaluated, but variables
 are bound before  unifying.
 
@@ -60,21 +56,32 @@ foo x y :- {
     x * 2
 }
 
-{}'s can have spaces,newlines or ; seperating statements. same for []'s  ()'s can
-only contain one statement
+(foo 1 2 3) and foo(1 2 3) are perfectly good ways to call a function too.
+
+{}' are code. {}'s can have spaces,newlines or ; seperating statements. 
+same for []'s -lists
+()'s can only contain one statement
 
 here is a list: [1 2 3 4] if I call 
 foo [1+2 3+4], it recieves  a list containing 1+2 3+4
-x = [1+2 3+4] also does not evaluate arguments.
+again, like prolog x = [1+2 3+4] also does not evaluate arguments.
 
 so: 1+2 - expression, evaluated
 x = 1+2 - unification, 1+2 is not evaluated
 foo 1+2 - unification again
 foo {1+2} - explicit expression, evaluated.
 
-
+a little note:
 foo followed by items is a function call
 foo on it's own is a variable.
+
+x + y is x, y variables
+x + y 1 2 3 is the list (x+y) 1 2 3
+x + foo(y) or x + (foo y) foo is evaluated
+foo bar(y) - unification does not evaluate bar(y).
+
+` is the built in eval function, and calling x = 1+2; eval x returns 3
+to escape evaluation in unification, use {}'s, not `
 
 here is another example: append
 
@@ -96,12 +103,17 @@ Env = [],
 Res = 3 ;
 false.
 
+closures work:
+foo x :- (bar :- x) 
+(foo x)()
+
+anonymous functions are declared using _ i.e _ x :- x
+
 
 todo: less bugs, more documentation, less code.
 
 possible language features:
     aggregate operators  3 + list is  {every (X in list && 3 + X)}
-    closures ? anonymous function defs (maybe (_ x y) :- foo)
     string operations ? more sugar ? case statements? 
     message passing? erlang-like concurrency ? modules ? libraries?
     i/o ? difference lists? pegs? dcgs?
