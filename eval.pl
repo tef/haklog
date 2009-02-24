@@ -52,6 +52,7 @@ eval(E,Eo,call(or,[X,Y]),Z) :- !,(evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z)).
 eval(E,E,call(not,X),[]) :- \+ eval(E,_,X,_), !.
 eval(E,Eo,call(ifthen,[X,Y]),Z) :- !,((evalone(E,E1,X,_) -> (!, eval(E1,Eo,Y,Z))); !,Z =[]).
 eval(E,Eo,call(if,X),Z) :- !,eval_if(E,Eo,X,Z). 
+eval(E,Eo,call(case,[X|T]),Z) :- !, str_unf(E,E1,X,X1), eval_case(E1,Eo,X1,T,Z). 
 eval(E,Eo,call(all,X),Z) :- !,eval_all(E,Eo,X,[],Z).
 eval(E,Eo,call(any,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; eval(E1,Eo,call(any,T),Z)).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
@@ -77,9 +78,13 @@ eval_quote(call(H,T), call(H,To)) :-!, eval_quote(T,To),!.
 eval_quote(lambda(H,T), lambda(H,To)) :-!, eval_quote(T,To),!.
 eval_quote(X,X) :- !.
 
+eval_case(E,E,_,[],[]).
+eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, (str_unf(Ei,E1,X,A) -> (!, eval(E1,Eo,Y,O))); eval_case(Ei,Eo,A,T,O). 
+eval_case(Ei,Eo,A,[E],E) :- !, str_unf(Ei,Eo,E,A).
+
 eval_if(E,E,[],[]).
+eval_if(Ei,Eo,[call(ifthen,[X,Y])|T],O) :- !, (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))); eval_if(Ei,Eo,T,O). 
 eval_if(Ei,Eo,[E],O) :- !, eval(Ei,Eo,E,O).
-eval_if(Ei,Eo,[call(ifthen,[X,Y])|T],O) :- (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))); eval_if(Ei,Eo,T,O). 
 
 eval_block(E,E,[],[]). 
 eval_block(E,Eo,[H],O) :- !, eval(E,Eo,H,O).
