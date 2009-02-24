@@ -21,6 +21,12 @@ ws0 --> [X], {code_type(X, white)}, ws.
 ws --> ws0.
 ws --> [].
 
+comment --> "#", comment_tail.
+
+comment_tail --> newline,!.
+comment_tail --> [_], comment_tail,!.
+comment_tail --> [].
+
 newline --> [10], linefeed. 
 
 linefeed --> [13]; [].
@@ -34,10 +40,12 @@ item(E) --> string(E),!.
 block([H|T],N) --> exprn(H,N), ws,!, block(T,N).
 block(X,N) --> ";", ws,!, block(X,N).
 block(X,N) --> newline, ws,!, block(X,N).
+block(X,N) --> comment, ws, !, block(X,N).
 block([],_) --> [].
 
 % a list of expressions (function args)
 exprl([H|T],N) --> exprn(H,N), ws,!, exprl(T,N).
+exprl(T,N) --> comment, ws, !, exprl(T,N).
 exprl([],_) --> [].
 
 %helpers
