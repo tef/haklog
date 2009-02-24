@@ -12,7 +12,7 @@ csyms([H|T]) --> csym(H), csyms(T).
 csyms([]) --> [].
 csym(C) --> [C], {code_type(C, csymf)}.
 
-string(str(S)) --> "\"", chars(S).
+string(A) --> "\"", chars(S), {string_to_atom(S,A)},!.
 chars([]) --> "\"".
 chars(["\""|T]) --> "\\\"", chars(T).
 chars([H|T]) --> [H], chars(T).
@@ -54,14 +54,14 @@ exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow(block(Op), O ,N1).
 exprn(O,N) --> item(L), !, follow(L,O,N).
  
 % follow parts
-%idfollow(O,X,N1) --> "(", ws, exprl(L,90), ws, ")", !,follow(call(X,L), O, N1). 
+idfollow(O,X,N1) --> "(", ws, exprl(L,90), ws, ")", !,follow(call(X,L), O, N1). 
 idfollow(O,X,N1) --> {90 < N1},ws, exprn(L1,90),!, exprl(L,90), !,follow(call(X,[L1|L]), O, N1). 
 idfollow(O,X,N1) --> !,follow(id(X), O, N1). 
 
 % every expression is ast-fragment then a follow. the fragment is passed
 % to follow, to check for infix stuff (that contains it)
-follow(L,O,N1) --> "[", ws, exprl(Op, 100), ws, "]" , follow(index(L,Op), O ,N1).
-%follow(L,O,N1) --> "(", ws, exprl(Op, 90), ws, ")" , follow(evalcall(L,Op), O ,N1).
+follow(L,O,N1) --> "[", ws, exprl(Op, 100), ws, "]",! , follow(index(L,Op), O ,N1).
+follow(L,O,N1) --> "(", ws, exprl(Op, 90), ws, ")",!, follow(call(L,Op), O ,N1).
 follow(L,O,N1) --> ws, (infix(Op,As,N) -> {assoc(As,N, N1)}), !,ws, exprn(R,N),!, build(Op,L,R,Z), follow(Z, O, N1).
 follow(L,O,N1) --> ws, (postfix(Op,N) -> {N =< N1}), follow(call(Op,[L]), O, N1).
 follow(L,O,N1) --> ws, ":;" , {99 =< N1} , follow(call(def,[L,[]]), O, N1).

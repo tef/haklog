@@ -39,7 +39,6 @@ eval(E,E,lambda(X,Y), lambda(X,Y)) :- !.
 eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,bind,X,O),!.
 eval(Ei,Eo,call(def,[call(N,A)|Y]),[]) :- variable(Ei,Eo,def,N,lambda(A,Y)),!.
 eval(Ei,Eo,call(def,[X,Y]),[]) :- variable(Ei,Eo,def,X,Y),!.
-eval(E,E,str(O), O) :- !.
 eval(E,Eo,call(and,[X,Y]),Z) :-!, evalone(E,E1,X,_),!,eval(E1,Eo,Y,Z).
 eval(E,Eo,call(or,[X,Y]),Z) :- !,(evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z)).
 eval(E,E,call(not,X),[]) :- \+ eval(E,_,X,_), !.
@@ -51,12 +50,17 @@ eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval_block(E,Eo,T,A),!.
 eval(E,Eo,call(unf,[A,B]),A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,A1).
 eval(E,Eo,call(in,[A,B]),A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,B1), member(A1,B1).
-eval(E,Eo,evalcall(H,T),O) :- !,eval(E,E1,H,Ho), eval(E1,Eo,call(Ho,T),O).
 eval(E,Eo,call(lambda(A,C),T),O) :- str_unf(E,Eo,T,To),eval_fun(E,[lambda(A,C)],To,O).
-eval(E,Eo,call(H,T),O) :- builtin(H),!, eval(E,Eo,T,To), apply(H,To,O).
-eval(E,Eo,call(C,T),A) :- !,defined(E,C,F),str_unf(E,Eo,T,To),eval_fun(E,F,To,A).
+eval(E,Eo,call(H,T),O) :- 
+    atom(H) -> (
+        (builtin(H),!, eval(E,Eo,T,To), apply(H,To,O)); 
+        (!,defined(E,H,F),str_unf(E,Eo,T,To),eval_fun(E,F,To,O))
+    );
+    (H = lambda(_,_), !, str_unf(E,Eo,T,To),eval_fun(E,H,To,O));
+    (!,eval(E,E1,H,Ho),  str_unf(E1,Eo,T,To),eval_fun(E,Ho,To,O)).
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
-eval(E,E,X,X) :- number(X).
+eval(E,E,X,X) :- number(X),!.
+eval(E,E,X,X) :- atom(X),!.
 
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[E],O) :- !, eval(Ei,Eo,E,O).
