@@ -99,6 +99,7 @@ infix(all,right,95) --> "&&".
 infix(and,right,95) --> "and".
 infix(any,right,96) --> "||".
 infix(or,right,96) --> "or".
+infix(xor,right,96) --> "xor".
 infix(in,right,60) --> "in".
 
 prefix(not,94) --> "not".
