@@ -7,9 +7,12 @@ start :-    halt.
 
 main :- current_prolog_flag(argv,X),
         clean_arguments(X,[],[_,File|_]),
-        \+File = [],
+        prompt(_,''),
+        (\+File = [] -> (
            string_to_atom(File,Name),
-           open(Name,read,I),
+           open(Name,read,I)
+        );
+        current_input(I)),
         execute(I).
 
 clean_arguments([--],H,[H,[],[]]).
@@ -63,6 +66,7 @@ eval(E,Eo,call(H,T),O) :-
     );
     (H = lambda(_,_), !, str_unf(E,Eo,T,To),eval_fun(E,H,To,O));
     (!,eval(E,E1,H,Ho),  str_unf(E1,Eo,T,To),eval_fun(E,Ho,To,O)).
+
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
 eval(E,E,X,X) :- number(X),!.
 eval(E,E,X,X) :- atom(X),!.
@@ -139,7 +143,5 @@ apply(say,[],[]):-nl,!.
 apply(say,[H|T],[]) :- say(H),!,apply(say,T,[]),!.
 builtin(cons). apply(cons,[X,Y],[X|Y]):-!.
 builtin(list). apply(list,X,X):-!.
-
-say(str(X)) :- writef("%s ",[X]),!.
-say(X) :- writef("%t ",[X]),!.
+say(X) :- writef(X),!.
 
