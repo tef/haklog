@@ -34,11 +34,16 @@ eval(_,_,call(id(fail),_),_) :- !,fail.
 eval(_,_,id(fail),_) :- !,fail.
 eval(E,E,[],[]) :-!.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
-eval(E,E,call(quote,[X]), X) :- !.
+eval(E,E,call(quote,[X]), Xo) :- !, eval_quote(X,Xo).
 eval(E,E,lambda(X,Y), lambda(X,Y)) :- !.
 eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,bind,X,O),!.
-eval(Ei,Eo,call(def,[call(N,A)|Y]),[]) :- variable(Ei,Eo,def,N,lambda(A,Y)),!.
-eval(Ei,Eo,call(def,[X,Y]),[]) :- variable(Ei,Eo,def,X,Y),!.
+eval(E,E,var(X),X) :-!.
+eval(Ei,Eo,call(def,[call(N,A)|Y]),lambda(Ao,Yo)) :- 
+    bind_vars(Ei,A,Ao,[],Av), !, bind_vars(Ei,Y,Yo,Av,_), !,
+    variable(Ei,Eo,def,N,lambda(Ao,Yo)),!.
+eval(Ei,Eo,call(def,[id(N)|Y]),lambda([],Yo)) :- 
+    bind_vars(Ei,Y,Yo,[],_), !,
+    variable(Ei,Eo,def,N,lambda([],Yo)),!.
 eval(E,Eo,call(and,[X,Y]),Z) :-!, evalone(E,E1,X,_),!,eval(E1,Eo,Y,Z).
 eval(E,Eo,call(or,[X,Y]),Z) :- !,(evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z)).
 eval(E,E,call(not,X),[]) :- \+ eval(E,_,X,_), !.
@@ -62,6 +67,12 @@ eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
 eval(E,E,X,X) :- number(X),!.
 eval(E,E,X,X) :- atom(X),!.
 
+eval_quote(id(X),X) :- !.
+eval_quote([H|T], [Ho|To]) :-!, eval_quote(H,Ho),!, eval_quote(T,To),!.
+eval_quote(call(H,T), call(H,To)) :-!, eval_quote(T,To),!.
+eval_quote(lambda(H,T), lambda(H,To)) :-!, eval_quote(T,To),!.
+eval_quote(X,X) :- !.
+
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[E],O) :- !, eval(Ei,Eo,E,O).
 eval_if(Ei,Eo,[call(ifthen,[X,Y])|T],O) :- (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))); eval_if(Ei,Eo,T,O). 
@@ -79,11 +90,23 @@ eval_fun(P,lambda(A,C),T,O) :-!,str_unf([],Eo,A,T),eval_block(['_'-P|Eo],_,C,O).
 
 % strucural unification
 str_unf(E,Eo,id(X),O) :- !, variable(E,Eo,bind,X,O).
+str_unf(E,E,var(X),X) :- !.
 str_unf(E,Eo,call(quote,[X]),Y) :- !, quote_unf(E,Eo,X,Y).
 str_unf(E,Eo,block(X),O) :- !, eval_block(E,Eo,X,O).
 str_unf(E,Eo,[H|T], [Ho|To]) :-!, str_unf(E,E1,H,Ho),!, str_unf(E1,Eo,T,To),!.
 str_unf(E,Eo,call(H,T), call(H,To)) :-!, str_unf(E,Eo,T,To),!.
+str_unf(E,Eo,lambda(H,T), lambda(H,To)) :-!, str_unf(E,Eo,T,To),!.
 str_unf(E,E,X,X) :- !.
+
+bind_vars(E,id(X),var(O),V,V) :- \+ member(X,V), member(X-O,E),!. 
+bind_vars(_,id(X),id(X),V,[X|V]) :-!.
+bind_vars(_,quote(X),X,V,V) :- !.
+bind_vars(_,lambda(X,Y),lambda(X,Y),V,V) :- !.
+bind_vars(_,call(def,Y),call(def,Y),V,V) :- !.
+bind_vars(E,call(X,Y),call(Xo,Yo),Vi,Vo) :- !, bind_vars(E,X,Xo,Vi,V1),!,bind_vars(E,Y,Yo,V1,Vo).
+bind_vars(E,block(X),block(Xo),Vi,Vo) :- !, bind_vars(E,X,Xo,Vi,Vo).
+bind_vars(E,[H|T], [Ho|To],Vi,Vo) :-!, bind_vars(E,H,Ho,Vi,V1),!, bind_vars(E,T,To,V1,Vo).
+bind_vars(_,X,X,V,V) :- !.
 
 quote_unf(E,E,id(X),X) :- !.
 quote_unf(E,Eo,[H|T], [Ho|To]) :-!, quote_unf(E,E1,H,Ho),!, quote_unf(E1,Eo,T,To),!.
