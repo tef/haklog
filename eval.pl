@@ -55,7 +55,8 @@ eval(E,Eo,call(ifthen,[X,Y]),Z) :- !,((evalone(E,E1,X,_) -> (!, eval(E1,Eo,Y,Z))
 eval(E,Eo,call(if,X),Z) :- !,eval_if(E,Eo,X,Z). 
 eval(E,Eo,call(case,[X|T]),Z) :- !, str_unf(E,E1,X,X1), eval_case(E1,Eo,X1,T,Z). 
 eval(E,Eo,call(all,X),Z) :- !,eval_all(E,Eo,X,[],Z).
-eval(E,Eo,call(any,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; eval(E1,Eo,call(any,T),Z)).
+eval(_,_,call(any,[]),_) :- !, fail.
+eval(E,Eo,call(any,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; !,eval(E1,Eo,call(any,T),Z)).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval_block(E,Eo,T,A),!.
 eval(E,Eo,call(unf,[A,B]),A1) :- !,str_unf(E,E1,A,A1), str_unf(E1,Eo,B,A1).
@@ -64,7 +65,7 @@ eval(E,Eo,call(lambda(A,C),T),O) :- str_unf(E,Eo,T,To),eval_fun(E,[lambda(A,C)],
 eval(E,Eo,call(H,T),O) :- 
     atom(H) -> (
         (builtin(H),!, eval(E,Eo,T,To), apply(H,To,O)); 
-        (!,defined(E,H,F),str_unf(E,Eo,T,To),eval_fun(E,F,To,O))
+        (!,defined(E,H,F), \+ F = [],str_unf(E,Eo,T,To),eval_fun(E,F,To,O))
     );
     (H = lambda(_,_), !, str_unf(E,Eo,T,To),eval_fun(E,H,To,O));
     (!,eval(E,E1,H,Ho),  str_unf(E1,Eo,T,To),eval_fun(E,Ho,To,O)).
