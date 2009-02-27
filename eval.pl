@@ -38,9 +38,9 @@ eval(_,_,id(fail),_) :- !,fail.
 eval(E,E,[],[]) :-!.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
 eval(E,E,call(quote,[X]), Xo) :- !, eval_quote(X,Xo).
-eval(E,E,lambda(X,Y), lambda(X,Y)) :- !.
 eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,bind,X,O),!.
 eval(E,E,var(X),X) :-!.
+eval(E,E,lambda(X,Y),lambda(X,Y)) :-!. % this is here so when X is defined as call(any...) 
 eval(Ei,Eo,call(def,[call(N,A)|Y]),lambda(Ao,Yo)) :- 
     bind_vars(Ei,A,Ao,[],Av), !, bind_vars(Ei,Y,Yo,Av,_), !,
     variable(Ei,Eo,def,N,lambda(Ao,Yo)),!.
@@ -76,8 +76,8 @@ eval(E,E,X,X) :- atom(X),!.
 
 eval_quote(id(X),X) :- !.
 eval_quote([H|T], [Ho|To]) :-!, eval_quote(H,Ho),!, eval_quote(T,To),!.
+eval_quote(call(def,T), call(def,T)) :-!.
 eval_quote(call(H,T), call(H,To)) :-!, eval_quote(T,To),!.
-eval_quote(lambda(H,T), lambda(H,To)) :-!, eval_quote(T,To),!.
 eval_quote(X,X) :- !.
 
 eval_case(E,E,_,[],[]).
