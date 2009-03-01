@@ -1,4 +1,4 @@
-member x x,_:;
+member x x,_ :- x
 member x _,t :- member x t
 
 every {member x [1 2] && say x}

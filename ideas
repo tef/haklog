@@ -1,23 +1,36 @@
+done:
+    case statements? 
+    if statements
+    xor
+    closures
+    anonymous functions 
+    foo() syntax
+
 possible language features:
     string handling: pattern matching over strings, variable capture, dcg akin?
+    string operations ? more sugar ? 
     icon combinatorics? ++ backtracking append
+    difference lists? pegs? dcgs?
+
     aggregate operators  3 + list is  {every (X in list && 3 + X)}
-    string operations ? more sugar ? case statements? 
     message passing? erlang-like concurrency ? modules ? libraries?
-    i/o ? difference lists? pegs? dcgs?
+    i/o ? 
     mutable assignment?
     xml literals? url literals?
 
-
-ideas:
-
+--
 evaluation context vs unification context 
 
 need to always unify args before evaling, esp for 
-apply
+apply ?
 
+no - assignment is always in a unification context
+--
+message passing:
 
+use swi prolog threading
 
+--
 pattern matching.
 
 unification needs some more fine tuning:
@@ -47,12 +60,56 @@ x?*
 
 
 idea - build normal commands first range(x,0,1) range(x,0,1) etc
+--
 
-mutable variables - I have been thinking about
-pure and impure functions when I should have been
-thinking about mutable and immutable variables.
-
-inessence: set x! 1 not set! x 1. Use ! to denote
+mutable variables - I have been thinking about pure and impure functions when I should have been
+thinking about mutable and immutable variables.  inessence: set x! 1 not set! x 1. Use ! to denote
 a mutable variable.
+
+--
+
+objects:
+
+foo x y z| bar a b c -> bar {foo x y z} a b c
+| as lookup
+
+foo|method x y z
+
+--
+next steps: nail down semantics and features and freeze the language spec
+
+refactor into mercury:
+    faster implementation straight away
+    distributable binary
+    easier to add new semantics
+
+translation into prolog:
+    possible - also faster implementation
+    future compilation strategy
+    more annoying to add semantics
+--
+roadmap to hardware:
+
+compile haklog to more and more concrete languages:
+i.e to prolog, then to mercury? 
+
+add more levels of inference: 
+    type, mode, regions, and static garbage collection
+    i.e copy prolog, mercury compilers, python ?
+
+    compile to prolog, then to python.
+    use python for things like ctypes
+    llvm backend ? 
+
+--
+c vm ? 
+    add ctypes library
+    write haklog to bytecode 
+    build io/alloc library 
+        files, heaps ?
+        asychronous io ?
+
+--
+    objects
 
 
