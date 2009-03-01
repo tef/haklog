@@ -66,7 +66,7 @@ exprn(O,N) --> item(L), !, follow(L,O,N).
  
 % follow parts
 idfollow(O,X,N1) --> "(" -> {5 < N1} ,!, ws, exprl(Op, 90), ws, ")",!, follow(call(X,Op), O ,N1).
-idfollow(O,X,N1) --> {90 < N1},ws, exprn(L1,90),!, exprl(L,90), !,follow(call(X,[L1|L]), O, N1). 
+idfollow(O,X,N1) --> {90 < N1},ws,\+infix(_,_,_),exprn(L1,90),!, exprl(L,90), !,follow(call(X,[L1|L]), O, N1). 
 idfollow(O,X,N1) --> !,follow(id(X), O, N1). 
 
 % every expression is ast-fragment then a follow. the fragment is passed
