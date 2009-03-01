@@ -125,8 +125,8 @@ prefix(any,4) --> "*".
 prefix(some,4) --> "+".
 prefix(maybe,4) --> "?".
 prefix(isnt,4) --> "!".
-prefix(ahead,4) --> "&".
-
+prefix(ahead,4) --> "&", \+ "&".
+ 
 prefix(not,94) --> "not".
 prefix(once,94) --> "once".
 prefix(quote,5) --> "'".
