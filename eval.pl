@@ -77,16 +77,7 @@ bind_vars(E,Eo,quote(X),Y) :- !, quote_unf(E,Eo,X,Y).
 bind_vars(E,E,lambda(H,T), lambda(H,T)) :- !.
 bind_vars(E,E,call(def,T), call(def,T)) :- !.
 bind_vars(E,Eo,call(H,T), call(Ho,To)) :-!, bind_vars(E,E1,H,Ho),bind_vars(E1,Eo,T,To).
-bind_vars(E,Eo,choice(H,T), choice(Ho,To)) :-!, bind_vars(E,E1,H,Ho),bind_vars(E1,Eo,T,To).
-bind_vars(E,Eo,bind(H,T), bind(Ho,To)) :-!, bind_vars(E,E1,H,Ho),bind_vars(E1,Eo,T,To).
-bind_vars(E,Eo,maybe(H), maybe(Ho)) :-!, bind_vars(E,Eo,H,Ho).
-bind_vars(E,Eo,zmaybe(H), zmaybe(Ho)) :-!, bind_vars(E,Eo,H,Ho).
-bind_vars(E,Eo,any(H), any(Ho)) :-!, bind_vars(E,Eo,H,Ho).
-bind_vars(E,Eo,zany(H), zany(Ho)) :-!, bind_vars(E,Eo,H,Ho).
-bind_vars(E,Eo,some(H), some(Ho)) :-!, bind_vars(E,Eo,H,Ho).
-bind_vars(E,Eo,zsome(H), zsome(Ho)) :-!, bind_vars(E,Eo,H,Ho).
-bind_vars(E,Eo,ahead(H), ahead(Ho)) :-!, bind_vars(E,Eo,H,Ho).
-bind_vars(E,Eo,isnt(H), isnt(Ho)) :-!, bind_vars(E,Eo,H,Ho).
+bind_vars(E,Eo,p(P,H),p(P,Ho)) :-!, bind_vars(E,Eo,H,Ho).
 bind_vars(E,Eo,block(X),O) :- !, eval_block(E,Eo,X,O).
 bind_vars(E,Eo,[H|T], [Ho|To]) :-!, bind_vars(E,E1,H,Ho), bind_vars(E1,Eo,T,To).
 bind_vars(E,E,X,X) :- !.
@@ -98,16 +89,8 @@ bind_lambda_vars(_,quote(X),X,V,V) :- !.
 bind_lambda_vars(_,lambda(X,Y),lambda(X,Y),V,V) :- !.
 bind_lambda_vars(_,call(def,Y),call(def,Y),V,V) :- !.
 bind_lambda_vars(E,call(X,Y),call(Xo,Yo),Vi,Vo) :- !, bind_lambda_vars(E,X,Xo,Vi,V1),!,bind_lambda_vars(E,Y,Yo,V1,Vo).
-bind_lambda_vars(E,choice(X,Y),choice(Xo,Yo),Vi,Vo) :- !, bind_lambda_vars(E,X,Xo,Vi,V1),!,bind_lambda_vars(E,Y,Yo,V1,Vo).
-bind_lambda_vars(E,bind(X,Y),bind(Xo,Yo),Vi,Vo) :- !, bind_lambda_vars(E,X,Xo,Vi,V1),!,bind_lambda_vars(E,Y,Yo,V1,Vo).
 bind_lambda_vars(E,block(X),block(Xo),Vi,Vo) :- !, bind_lambda_vars(E,X,Xo,Vi,Vo).
-bind_lambda_vars(E,maybe(T), maybe(To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
-bind_lambda_vars(E,zmaybe(T),zmaybe(To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
-bind_lambda_vars(E,any(T),any(To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
-bind_lambda_vars(E,zany(T),zany(To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
-bind_lambda_vars(E,some(T),some(To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
-bind_lambda_vars(E,zsome(T),zsome(To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
-bind_lambda_vars(E,ahead(T),ahead(To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
+bind_lambda_vars(E,p(P,T),p(P,To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
 bind_lambda_vars(_,X,X,V,V) :- !.
 
 

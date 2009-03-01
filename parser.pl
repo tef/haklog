@@ -80,19 +80,19 @@ follow(O,O,_) --> !.
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
 
-build(any,R,any(R)) --> !.
-build(some,R,some(R)) --> !.
-build(maybe,R,maybe(R)) --> !.
-build(zany,R,zany(R)) --> !.
-build(zsome,R,zsome(R)) --> !.
-build(zmaybe,R,zmaybe(R)) --> !.
-build(ahead,R,ahead(R)) --> !.
-build(isnt,R,isnt(R)) --> !.
+build(any,R,p(any,R)) --> !.
+build(some,R,p(some,R)) --> !.
+build(maybe,R,p(maybe,R)) --> !.
+build(zany,R,p(zany,R)) --> !.
+build(zsome,R,p(zsome,R)) --> !.
+build(zmaybe,R,p(zmaybe,R)) --> !.
+build(ahead,R,p(ahead,R)) --> !.
+build(isnt,R,p(isnt,R)) --> !.
 build(C,R,call(C,R)) --> !.
 build(cons,L,R,[L|R]) --> !.
 build(pair,L,R,[L,R]) --> !.
-build(bind,L,R,bind(L,R)) --> !.
-build(choice,L,R,choice(L,R)) --> !.
+build(bind,L,R,p(bind,[L,R])) --> !.
+build(choice,L,R,p(choice,[L,R])) --> !.
 build(C,L,R,call(C,[L,R])) --> !.
 
 infix(def, right, 99) --> ":-".
