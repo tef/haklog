@@ -104,7 +104,7 @@ infix(ge,right,60) --> "=<".
 infix(gt,right,60) --> ">".
 infix(lt,right,60) --> "<".
 infix(cons,right,55) --> ",".
-infix(bind,right,70) --> ":".
+infix(bind,left,75) --> ":".
 infix(add,right,50) --> "+".
 infix(sub,right,50) --> "-".
 infix(mul,right,45) --> "*".
