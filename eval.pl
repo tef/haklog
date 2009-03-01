@@ -65,7 +65,7 @@ eval_conj(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_conj(E1,Eo,T,O,X).
 
 % evaluate against a given list of functions
 eval_fun(P,call(disj,[A,B]),T,O) :- !, (eval_fun(P,A,T,O); eval_fun(P,B,T,O)).
-eval_fun(P,lambda(A,C),T,O) :-!,bind_vars([],E1,A,A1),!, unify(E1,Eo,T,A1), eval_block(['_'-P|Eo],_,C,O).
+eval_fun(P,lambda(A,C),T,O) :-!,bind_vars([],E1,A,A1),!, unify(E1,Eo,A1,T), eval_block(['_'-P|Eo],_,C,O).
 
 quote_unf(E,E,id(X),X) :- !.
 quote_unf(E,Eo,[H|T], [Ho|To]) :-!, quote_unf(E,E1,H,Ho),!, quote_unf(E1,Eo,T,To),!.
