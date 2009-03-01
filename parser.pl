@@ -86,9 +86,13 @@ build(maybe,R,maybe(R)) --> !.
 build(zany,R,zany(R)) --> !.
 build(zsome,R,zsome(R)) --> !.
 build(zmaybe,R,zmaybe(R)) --> !.
+build(ahead,R,ahead(R)) --> !.
+build(isnt,R,isnt(R)) --> !.
 build(C,R,call(C,R)) --> !.
 build(cons,L,R,[L|R]) --> !.
 build(pair,L,R,[L,R]) --> !.
+build(bind,L,R,bind(L,R)) --> !.
+build(choice,L,R,choice(L,R)) --> !.
 build(C,L,R,call(C,[L,R])) --> !.
 
 infix(def, right, 99) --> ":-".
@@ -100,7 +104,7 @@ infix(ge,right,60) --> "=<".
 infix(gt,right,60) --> ">".
 infix(lt,right,60) --> "<".
 infix(cons,right,55) --> ",".
-infix(pair,right,55) --> ":".
+infix(bind,right,70) --> ":".
 infix(add,right,50) --> "+".
 infix(sub,right,50) --> "-".
 infix(mul,right,45) --> "*".
@@ -108,6 +112,7 @@ infix(div,right,45) --> "/".
 infix(conj,right,95) --> "&&". 
 infix(and,right,95) --> "and".
 infix(disj,right,96) --> "||".
+infix(choice,right,75) --> "|".
 infix(or,right,96) --> "or".
 infix(xor,right,96) --> "xor".
 infix(in,right,60) --> "in".
@@ -119,6 +124,8 @@ prefix(zmaybe,4) --> "??".
 prefix(any,4) --> "*".
 prefix(some,4) --> "+".
 prefix(maybe,4) --> "?".
+prefix(isnt,4) --> "!".
+prefix(ahead,4) --> "&".
 
 prefix(not,94) --> "not".
 prefix(once,94) --> "once".
