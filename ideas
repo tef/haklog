@@ -43,14 +43,31 @@ we have a cons, we need an embed/star operator
 we also need greedy/non greedy operators.
 
 problem - ambiguous grammar 
+option 1:
+    use different operators
+    use prefix instead of postfix operators.
+    context sensitive operators
+
+
+*           kleene star     any
++                           some
+    {m,n}
+    up to n
+?                           maybe
+*?                          anyz
++?                          somez    
+??                          maybez
+
+
 we also need a bind operator
 i.e Z = X ? [1 2] or X = [1 2]:X
 to unify against one and bind to the other. ? is nice, so 
-:.
+a a  :.
 
 X = Z ? "a"*, A ? "b"* ,D ?/c/.
 D = "abc"*
 
+X = *"a":a, *"b":b, *"c",
 // <- string pattern syntax? with character classes
 
 range matches 0,1 1: 3..4

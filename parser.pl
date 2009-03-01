@@ -41,11 +41,13 @@ block([H|T],N) --> exprn(H,N), ws,!, block(T,N).
 block(X,N) --> ";", ws,!, block(X,N).
 block(X,N) --> newline, ws,!, block(X,N).
 block(X,N) --> comment, ws, !, block(X,N).
+block(X,N) -->  ws0, !, block(X,N).
 block([],_) --> [].
 
 % a list of expressions (function args)
 exprl([H|T],N) --> exprn(H,N), ws,!, exprl(T,N).
 exprl(T,N) --> comment, ws, !, exprl(T,N).
+exprl(T,N) -->  ws0,!, exprl(T,N).
 exprl([],_) --> [].
 
 %helpers
@@ -63,7 +65,7 @@ exprn(O,N1) --> \+ infix(_,_,_), %\+ postfix(_,_),
 exprn(O,N) --> item(L), !, follow(L,O,N).
  
 % follow parts
-idfollow(O,X,N1) --> "(",!, ws, exprl(Op, 90), ws, ")",!, follow(call(X,Op), O ,N1).
+idfollow(O,X,N1) --> "(" -> {5 < N1} ,!, ws, exprl(Op, 90), ws, ")",!, follow(call(X,Op), O ,N1).
 idfollow(O,X,N1) --> {90 < N1},ws, exprn(L1,90),!, exprl(L,90), !,follow(call(X,[L1|L]), O, N1). 
 idfollow(O,X,N1) --> !,follow(id(X), O, N1). 
 
@@ -73,7 +75,7 @@ follow(L,O,N1) --> "[",!, ws, exprl(Op, 100), ws, "]",! , follow(index(L,Op), O 
 follow(L,O,N1) --> "(",!, ws, exprl(Op, 90), ws, ")",!, follow(call(L,Op), O ,N1).
 follow(L,O,N1) --> ws, (infix(Op,As,N) -> {assoc(As,N, N1)}), !,ws, exprn(R,N),!, build(Op,L,R,Z), follow(Z, O, N1).
 %follow(L,O,N1) --> ws, (postfix(Op,N) -> {N =< N1}), !,follow(call(Op,[L]), O, N1).
-follow(O,O,_) --> ws.
+follow(O,O,_) --> !.
 
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
@@ -110,13 +112,13 @@ infix(or,right,96) --> "or".
 infix(xor,right,96) --> "xor".
 infix(in,right,60) --> "in".
 
-prefix(zany,5) --> "?*".
-prefix(zsome,5) --> "?+".
-prefix(zmaybe,5) --> "??".
+prefix(zany,4) --> "*?".
+prefix(zsome,4) --> "+?".
+prefix(zmaybe,4) --> "??".
 
-prefix(any,5) --> "*".
-prefix(some,5) --> "+".
-prefix(maybe,5) --> "?".
+prefix(any,4) --> "*".
+prefix(some,4) --> "+".
+prefix(maybe,4) --> "?".
 
 prefix(not,94) --> "not".
 prefix(once,94) --> "once".
