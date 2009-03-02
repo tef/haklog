@@ -1,19 +1,27 @@
+reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,unf,in,
+    add,sub,div,mul,eq,le,lt,gt,ge,say,trace
+    ]).
+make_environment([],[]).
+make_environment([W|T],[W-id(W)|To]) :- make_environment(T,To).
+
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
+
 
 eval(E,E,X,X) :- var(X),!.
 eval(_,_,call(id(fail),_),_) :- !,fail.
+eval(E,E,id(trace),[]) :- !,trace.
 eval(_,_,id(fail),_) :- !,fail.
 eval(E,E,[],[]) :-!.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
 eval(E,E,call(quote,[X]), Xo) :- !, eval_quote(X,Xo).
-eval(Ei,Eo,id(X),O) :- variable(Ei,Eo,bind,X,O),!.
+eval(Ei,Eo,id(X),O) :- bind_variable(Ei,Eo,X,O),!.
 eval(E,E,lambda(X,Y),lambda(X,Y)) :-!. % this is here so when X is defined as call(disj...) 
-eval(Ei,Eo,call(def,[call(N,A)|Y]),lambda(Ao,Yo)) :- 
-    bind_lambda_vars(Ei,A,Ao,[],Av), !, bind_lambda_vars(Ei,Y,Yo,Av,_), !,
-    variable(Ei,Eo,def,N,lambda(Ao,Yo)),!.
-eval(Ei,Eo,call(def,[id(N)|Y]),lambda([],Yo)) :- 
-    bind_lambda_vars(Ei,Y,Yo,[],_), !,
-    variable(Ei,Eo,def,N,lambda([],Yo)),!.
+eval(E,Eo,call(def,[call(N,A)|Y]),lambda(Ao,Yo)) :- 
+    bind_lambda_vars(N,[],A,Ao,[],Av), !, bind_lambda_vars(N,E,Y,Yo,Av,_), !,
+    def_variable(E,Eo,N,lambda(Ao,Yo)),!.
+eval(E,Eo,call(def,[id(N)|Y]),lambda([],Yo)) :- 
+    bind_lambda_vars(N,E,Y,Yo,[],_), !,
+    def_variable(E,Eo,N,lambda([],Yo)),!.
 eval(E,Eo,call(and,[X,Y]),Z) :-!, evalone(E,E1,X,_),!,eval(E1,Eo,Y,Z).
 eval(E,Eo,call(or,[X,Y]),Z) :- !,(evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z)).
 eval(E,Eo,call(xor,[X,Y]),Z) :- !,((eval(E,Eo,X,Z) *-> true);eval(E,Eo,Y,Z)).
@@ -29,14 +37,14 @@ eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval_block(E,Eo,T,A),!.
 eval(E,Eo,call(unf,[A,B]),B1) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,unify(E2,Eo,A1,B1).
 eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,eval(E1,Eo,B,A1).
-eval(E,Eo,call(lambda(A,C),T),O) :- bind_vars(E,Eo,T,To),eval_fun(E,[lambda(A,C)],To,O).
-eval(E,Eo,call(H,T),O) :- 
+eval(E,Eo,call(H,T),O) :-  \+ var(H),
     atom(H) -> (
         (builtin(H),!, eval(E,Eo,T,To), apply(H,To,O)); 
-        (!,defined(E,H,F), \+ F = [],bind_vars(E,Eo,T,To),!,eval_fun(E,F,To,O))
+        (!,defined(E,H,F),!,eval(E,Eo,call(F,T),O))
     );
-    (H = lambda(_,_), !, bind_vars(E,Eo,T,To),!,eval_fun(E,H,To,O));
-    (!,eval(E,E1,H,Ho),  bind_vars(E1,Eo,T,To),!,eval_fun(E,Ho,To,O)).
+    ((H = lambda(_,_);H = call(disj,_)), !, bind_vars(E,Eo,T,To),!,eval_fun(E,['_rec'-H],H,To,O));
+    (H = id(Ho), !, eval(E,Eo,call(Ho,T),O));
+    (!,eval(E,E1,H,Ho), eval(E1,Eo,call(Ho,T),O)).
 
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
 eval(E,E,X,X) :- number(X),!.
@@ -51,7 +59,7 @@ eval_quote(X,X) :- !.
 
 eval_case(E,E,_,[],[]).
 eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(E1,E2,A,X1)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
-eval_case(Ei,Eo,A,[E],Ev) :- !, bind_vars(Ei,E1,E,Ev),!, unify(E1,Eo,A,Ev).
+eval_case(Ei,Eo,_,[E],Ev) :- !, eval(Ei,Eo,E,Ev).
 
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[call(ifthen,[X,Y])|T],O) :- !, (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))); eval_if(Ei,Eo,T,O). 
@@ -65,15 +73,15 @@ eval_conj(E,E,[],X,X).
 eval_conj(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_conj(E1,Eo,T,O,X).
 
 % evaluate against a given list of functions
-eval_fun(P,call(disj,[A,B]),T,O) :- !, (eval_fun(P,A,T,O); eval_fun(P,B,T,O)).
-eval_fun(P,lambda(A,C),T,O) :-!,bind_vars([],E1,A,A1),!, unify(E1,Eo,A1,T), eval_block(['_'-P|Eo],_,C,O).
+eval_fun(P,S,call(disj,[A,B]),T,O) :- !, (eval_fun(P,S,A,T,O); \+ var(B),eval_fun(P,S,B,T,O)).
+eval_fun(P,S,lambda(A,C),T,O) :-!,bind_vars(S,E1,A,A1),!, unify(E1,Eo,A1,T), eval_block(['_'-P|Eo],_,C,O).
 
 quote_unf(E,E,id(X),X) :- !.
 quote_unf(E,Eo,[H|T], [Ho|To]) :-!, quote_unf(E,E1,H,Ho),!, quote_unf(E1,Eo,T,To),!.
 quote_unf(E,E,X,X) :- !.
 
 bind_vars(E,E,X,X) :- var(X),!.
-bind_vars(E,Eo,id(X),O) :- !, variable(E,Eo,bind,X ,O),!.
+bind_vars(E,Eo,id(X),O) :- !, bind_variable(E,Eo,X ,O),!.
 bind_vars(E,Eo,quote(X),Y) :- !, quote_unf(E,Eo,X,Y).
 bind_vars(E,E,lambda(H,T), lambda(H,T)) :- !.
 bind_vars(E,E,call(def,T), call(def,T)) :- !.
@@ -84,26 +92,38 @@ bind_vars(E,Eo,[H|T], [Ho|To]) :-!, bind_vars(E,E1,H,Ho), bind_vars(E1,Eo,T,To).
 bind_vars(E,E,X,X) :- !.
 
 
-bind_lambda_vars(E,id(X),O,V,V) :- \+ member(X,V), member(X-O,E),!. 
-bind_lambda_vars(_,id(X),id(X),V,[X|V]) :-!.
-bind_lambda_vars(_,quote(X),X,V,V) :- !.
-bind_lambda_vars(_,lambda(X,Y),lambda(X,Y),V,V) :- !.
-bind_lambda_vars(_,call(def,Y),call(def,Y),V,V) :- !.
-bind_lambda_vars(E,call(X,Y),call(Xo,Yo),Vi,Vo) :- !, bind_lambda_vars(E,X,Xo,Vi,V1),!,bind_lambda_vars(E,Y,Yo,V1,Vo).
-bind_lambda_vars(E,block(X),block(Xo),Vi,Vo) :- !, bind_lambda_vars(E,X,Xo,Vi,Vo).
-bind_lambda_vars(E,p(P,T),p(P,To),Vi,Vo) :-!, bind_lambda_vars(E,T,To,Vi,Vo).
-bind_lambda_vars(_,X,X,V,V) :- !.
+bind_lambda_vars(_,_,id('_'),id('_'),V,V) :-!. 
+bind_lambda_vars(R,_,id(R),id('_rec'),V,V) :-!. 
+bind_lambda_vars(id(R),_,id(R),id('_rec'),V,V) :-!. 
+bind_lambda_vars(_,_,id(X),id(X),V,V) :- member(X,V),!.
+bind_lambda_vars(_,E,id(X),O,V,V) :- defined(E,X,O),!. 
+bind_lambda_vars(_,_,id(X),id(X),V,[X|V]) :-!.
+bind_lambda_vars(_,_,quote(X),X,V,V) :- !.
+bind_lambda_vars(R,E,lambda(X,Y),lambda(Xo,Yo),V,V) :- 
+    !,bind_lambda_vars(R,E,X,Xo,[],V1), append(V1,V,V2),!,bind_lambda_vars(R,E,Y,Yo,V2,_).
+bind_lambda_vars(_,E,call(def,[id(X),Y]),call(def,[id(X),Yo]),Vi,Vo) :- !,bind_lambda_vars(X,E,Y,Yo,Vi,Vo).
+bind_lambda_vars(R,E,call(X,Y),call(Xo,Yo),Vi,Vo) :- atom(X),!, 
+    bind_lambda_vars(R,E,id(X),X1,Vi,V1), (X1 = id(Xo),!;Xo=X1),!,bind_lambda_vars(R,E,Y,Yo,V1,Vo).
+bind_lambda_vars(R,E,call(X,Y),call(Xo,Yo),Vi,Vo) :- !, bind_lambda_vars(R,E,X,Xo,Vi,V1),!,bind_lambda_vars(R,E,Y,Yo,V1,Vo).
+bind_lambda_vars(R,E,[X|Y],[Xo|Yo],Vi,Vo) :- !, bind_lambda_vars(R,E,X,Xo,Vi,V1),!,bind_lambda_vars(R,E,Y,Yo,V1,Vo).
+bind_lambda_vars(R,E,block(X),block(Xo),Vi,Vo) :- !, bind_lambda_vars(R,E,X,Xo,Vi,Vo).
+bind_lambda_vars(R,E,p(P,T),p(P,To),Vi,Vo) :-!, bind_lambda_vars(R,E,T,To,Vi,Vo).
+bind_lambda_vars(_,_,X,X,V,V) :- !.
 
 
 % find all function defs, return a list of functions and an environment of defined things
 defined(E,K,V) :- member(K-V,E).
 defined(E,K,V) :- !, member('_'-P,E), defined(P,K,V).
 
-% state
-variable(E,E,_,'_',_):- !.
-variable(E,[K-call(disj,[Vi,V])|R],def,K,V) :- select(K-Vi, E, R),!.
-variable(E,E,bind,K,V) :- member(K-V,E),!.
-variable(E,[K-V|E],_,K,V):- !.
+def_variable(E,E,'_',_):- !.
+def_variable(E,[K-call(disj,[Vi,V])|R],K,V) :- select(K-Vi, E, R),!.
+def_variable(E,[K-V|E],K,V):- !.
+
+bind_variable(E,E,'_',_):- !.
+bind_variable(E,E,'_env',E):- !.
+bind_variable(E,E,K,V) :- defined(E,K,V),!.
+bind_variable(E,[K-V|E],K,V):- !.
+
 
 
 % builtin functions

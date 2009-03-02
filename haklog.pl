@@ -31,5 +31,7 @@ read_file(I,Li,Lo) :-  get_byte(I,C), ((C = -1,!,Lo=[]); Lo=[C|L1], read_file(I,
 
 exec(X,E,O) :- 
     parse(X,S),!,
-    eval([],E,S,O).
+    reserved(R),
+    make_environment(R,E1),
+    eval(E1,E,S,O).
 

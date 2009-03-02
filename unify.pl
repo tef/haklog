@@ -26,11 +26,12 @@ unify(E,Eo,O,block(X)) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,O,Xo).
 unify(E,E,X,X) :- !.
 
 unify_var(E,E,[],[]) :-!.
-unify_var(E,Eo,O,p(P,A)) :- !, unify_var_p(P,E,Eo,A,[],O,_).
-unify_var(E,Eo,O,[p(P,A)|T]) :- !, unify_var_p(P,E,E1,A,[],Ho,_), join(Ho,To,O), unify_var(E1,Eo,To,T).
+unify_var(E,Eo,O,p(P,A)) :- !, unify_var_p(P,E,Eo,A,[],O).
+unify_var(E,Eo,O,[p(P,A)|T]) :- !, unify_var_p(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T).
 unify_var(E,Eo,[Ho|To],[H|T]) :- !,unify_var(E,E1,Ho,H), unify_var(E1,Eo,To,T).
+unify_var(E,E,call(def,T), call(def,T)) :-!.
 unify_var(E,Eo,call(Ho,To), call(H,T)) :-!,unify_var(E,E1,Ho,H),unify_var(E1,Eo,To,T).
-unify_var(E,Eo,lambda(Ho,To), lambda(H,T)) :-!,unify_var(E,E1,H,Ho), unify_var(E1,Eo,T,To).
+unify_var(E,E,lambda(H,T), lambda(H,T)) :-!.
 unify_var(E,Eo,O,block(X)) :- !, eval_block(E,E1,X,Xo), unify_var(E1,Eo,O,Xo).
 unify_var(E,E,X,X) :- !.
 

@@ -73,6 +73,7 @@ idfollow(O,X,N1) --> !,follow(id(X), O, N1).
 % to follow, to check for infix stuff (that contains it)
 follow(L,O,N1) --> "[",!, ws, exprl(Op, 100), ws, "]",! , follow(index(L,Op), O ,N1).
 follow(L,O,N1) --> "(",!, ws, exprl(Op, 90), ws, ")",!, follow(call(L,Op), O ,N1).
+follow(L,O,N1) --> {90 < N1},ws,"$" ,!, ws, exprl(Op, 90), ws,!, follow(call(L,Op), O ,N1).
 follow(L,O,N1) --> ws, (infix(Op,As,N) -> {assoc(As,N, N1)}), !,ws, exprn(R,N),!, build(Op,L,R,Z), follow(Z, O, N1).
 %follow(L,O,N1) --> ws, (postfix(Op,N) -> {N =< N1}), !,follow(call(Op,[L]), O, N1).
 follow(O,O,_) --> !.
