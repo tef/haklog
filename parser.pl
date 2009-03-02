@@ -121,9 +121,9 @@ prefix(zany,4) --> "*?".
 prefix(zsome,4) --> "+?".
 prefix(zmaybe,4) --> "??".
 
-prefix(any,4) --> "*".
-prefix(some,4) --> "+".
-prefix(maybe,4) --> "?".
+prefix(any,4) --> "*",\+"?".
+prefix(some,4) --> "+", \+"?".
+prefix(maybe,4) --> "?", \+"?".
 prefix(isnt,4) --> "!".
 prefix(ahead,4) --> "&", \+ "&".
  
