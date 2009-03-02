@@ -24,6 +24,7 @@ eval(E,Eo,call(case,[X|T]),Z) :- !, bind_vars(E,E1,X,X1), eval_case(E1,Eo,X1,T,Z
 eval(E,Eo,call(conj,X),Z) :- !,eval_conj(E,Eo,X,[],Z).
 eval(_,_,call(disj,[]),_) :- !, fail.
 eval(E,Eo,call(disj,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; !,eval(E1,Eo,call(disj,T),Z)).
+eval(E,Eo,call(eval,X),Z) :- !,bind_vars(E,E1,X,X1),!, eval(E1,Eo,X1,[Z]).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval_block(E,Eo,T,A),!.
 eval(E,Eo,call(unf,[A,B]),B1) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,unify(E2,Eo,A1,B1).
