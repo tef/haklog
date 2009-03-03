@@ -1,0 +1,8 @@
+fib f :- {
+    _ a :- {
+        a=0 and 1 xor a*f({a-1})
+    }
+ }
+ y f :-(_ x :-(f { _ a :- x x $ a}))$ {_ x :- f {_ a :- x x $ a}};
+ 
+ y fib $ 5

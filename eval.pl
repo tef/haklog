@@ -8,10 +8,10 @@ evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
 
 eval(E,E,X,X) :- var(X),!.
+eval(E,E,[],[]) :-!.
 eval(_,_,call(id(fail),_),_) :- !,fail.
 eval(E,E,id(trace),[]) :- !,trace.
 eval(_,_,id(fail),_) :- !,fail.
-eval(E,E,[],[]) :-!.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
 eval(E,E,call(quote,[X]), Xo) :- !, eval_quote(X,Xo).
 eval(Ei,Eo,id(X),O) :- bind_variable(Ei,Eo,X,O),!.
@@ -44,7 +44,7 @@ eval(E,Eo,call(H,T),O) :-  \+ var(H),
     );
     ((H = lambda(_,_);H = call(disj,_)), !, bind_vars(E,Eo,T,To),!,eval_fun(E,['_rec'-H],H,To,O));
     (H = id(Ho), !, eval(E,Eo,call(Ho,T),O));
-    (!,eval(E,E1,H,Ho), eval(E1,Eo,call(Ho,T),O)).
+    (!,eval(E,E1,H,Ho),\+H=Ho,eval(E1,Eo,call(Ho,T),O)).
 
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
 eval(E,E,X,X) :- number(X),!.
@@ -73,8 +73,8 @@ eval_conj(E,E,[],X,X).
 eval_conj(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_conj(E1,Eo,T,O,X).
 
 % evaluate against a given list of functions
-eval_fun(P,S,call(disj,[A,B]),T,O) :- !, (eval_fun(P,S,A,T,O); \+ var(B),eval_fun(P,S,B,T,O)).
 eval_fun(P,S,lambda(A,C),T,O) :-!,bind_vars(S,E1,A,A1),!, unify(E1,Eo,A1,T), eval_block(['_'-P|Eo],_,C,O).
+eval_fun(P,S,call(disj,[A,B]),T,O) :- !, (eval_fun(P,S,A,T,O); \+ var(B),eval_fun(P,S,B,T,O)).
 
 quote_unf(E,E,id(X),X) :- !.
 quote_unf(E,Eo,[H|T], [Ho|To]) :-!, quote_unf(E,E1,H,Ho),!, quote_unf(E1,Eo,T,To),!.

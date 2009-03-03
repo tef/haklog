@@ -3,6 +3,7 @@
 :- consult('parser.pl').
 :- consult('eval.pl').
 :- consult('unify.pl').
+:- consult('print.pl').
 
 start :-    catch(main,E,(print_message(error,E),fail)),    halt.
 start :-    halt.
@@ -33,5 +34,6 @@ exec(X,E,O) :-
     parse(X,S),!,
     reserved(R),
     make_environment(R,E1),
-    eval(E1,E,S,O).
+    eval(E1,E,S,O),
+    hprint(O).
 
