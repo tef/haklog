@@ -1,6 +1,6 @@
 hprint(T) :- hprint_(T),!.
 hprint_([]).
-hprint_([H|T]) :- write('['),hprint__list([H|T]), write(']').
+hprint_([H|T]) :- write('['),hprint_list([H|T]), write(']').
 hprint_(call(X,Y)) :- write('('),hprint_(X),write('('),hprint_list(Y),write('))').
 hprint_(block(X)) :- write('{'),hprint_block(X),write('}').
 hprint_(lambda(X,Y)) :- write('_ '),hprint_list(X),write(' :- ' ),hprint_list(Y).

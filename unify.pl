@@ -1,12 +1,11 @@
 % strucural unification
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 unify(E,E,[],[]) :- !.
-unify(E,Eo,L,R) :- (var(L), (var(R), L=R, E=Eo,!);!, unify_var(E,Eo,L,R));var(R), !, unify_var(E,Eo,R,L).
+unify(E,Eo,L,R) :- (var(L) -> (var(R) -> (L=R, E=Eo,!);(!,unify_var(E,Eo,L,R)));var(R), !, unify_var(E,Eo,R,L)).
 
 unify(_,_,[],[H|_]) :- var(H) , !, fail.
 unify(_,_,[H|_],[]) :- var(H) , !, fail.
 
-unify(E,Eo,[L|Lt],[R|Rt]) :-  var(L), var(R), L=R,!, unify(E,Eo,Lt,Rt).
 unify(E,Eo,L,[p(P,A)|Rt]) :-  var(L), !, unify_var_p(P,E,Eo,A,Rt,L).
 unify(E,Eo,[p(P,A)|Lt],R) :-  var(R), !, unify_var_p(P,E,Eo,A,Lt,R).
 unify(E,Eo,[L|Lt],[R|Rt]) :-  var(L), !,unify_var(E,E1,L,R), unify(E1,Eo,Lt,Rt). 
