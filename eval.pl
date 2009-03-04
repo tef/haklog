@@ -4,8 +4,8 @@ reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,un
 make_environment([],[]).
 make_environment([W|T],[W-id(W)|To]) :- make_environment(T,To).
 
-spawn(E,C,Id) :- thread_create(eval(E,[],C,_), Id, []).
-send(Id,M) :- thread_send_message(Id,M),!.
+spawn(E,C,pid(Id)) :- thread_create(eval(E,[],C,_), Id, []).
+send(pid(Id),M) :- thread_send_message(Id,[pid(Id)|M]),!.
 recv(M) :- thread_get_message(M),!.
 
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
