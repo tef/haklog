@@ -9,7 +9,7 @@ classic prolog example:
 
 the same in haklog:
 
-    member x x,_:;
+    member x x,_ :- x
     member x _,t :- member x t
 
 prolog   vs     haklog
@@ -23,12 +23,12 @@ X = 1 + 2       x = 1+2
 foo(X,Y)        foo x y
 predicates      functions
 !               n/a
-foo.            foo :;
 foo :- bar      foo :- bar
 foo, bar        foo && bar
 foo, !, bar     foo and bar   {foo; bar}
 foo ; bar       foo || bar   
 (foo,!); bar    foo or bar
+foo *->[]; baz  for xor baz
 foo -> bar      foo -> bar
                 if (foo -> bar)* expr
 fail            fail
@@ -107,26 +107,14 @@ closures work:
 foo x :- (bar :- x) 
 (foo x)()
 
+message passing works:
+    id = spawn expression
+    send id expr
+    recv m/ recv 0 -> 1 m
+
+
 anonymous functions are declared using _ i.e _ x :- x
 
 
 todo: less bugs, more documentation, less code.
-
-possible language features:
-    string handling: pattern matching over strings, variable capture, dcg akin?
-    icon combinatorics? ++ backtracking append
-    aggregate operators  3 + list is  {every (X in list && 3 + X)}
-    string operations ? more sugar ? case statements? 
-    message passing? erlang-like concurrency ? modules ? libraries?
-    i/o ? difference lists? pegs? dcgs?
-    mutable assignment?
-    xml literals? url literals?
-
-
-idea:
-
-source = pattern , pattern 
-
-"abc" = "a","b","c", 
-X = Z ? /a/, A ? /c/ , D ?/c/.
 
