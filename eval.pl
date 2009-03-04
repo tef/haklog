@@ -36,7 +36,7 @@ eval(E,Eo,call(eval,X),Z) :- !,bind_vars(E,E1,X,X1),!, eval(E1,Eo,X1,[Z]).
 eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Yo,[],_), eval(E,Eo,Yo,Z).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval_block(E,Eo,T,A),!.
-eval(E,Eo,call(unf,[A,B]),B1) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,unify(E2,Eo,A1,B1).
+eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,unify(E2,Eo,A1,B1,O).
 eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,eval(E1,Eo,B,A1).
 eval(E,Eo,call(H,T),O) :-  \+ var(H),
     atom(H) -> (
@@ -59,8 +59,8 @@ eval_quote(call(H,T), call(H,To)) :-!, eval_quote(T,To),!.
 eval_quote(X,X) :- !.
 
 eval_case(E,E,_,[],[]).
-eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(E1,E2,A,X1)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
-eval_case(Ei,Eo,A,[X],X1) :- !,bind_vars(Ei,E1,X,X1) , !, unify(E1,Eo,A,X1).
+eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(E1,E2,A,X1,_)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
+eval_case(Ei,Eo,A,[X],O) :- !,bind_vars(Ei,E1,X,X1) , !, unify(E1,Eo,A,X1,O).
 
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[call(ifthen,[X,Y])|T],O) :- !, (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))); eval_if(Ei,Eo,T,O). 
@@ -74,7 +74,7 @@ eval_conj(E,E,[],X,X).
 eval_conj(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_conj(E1,Eo,T,O,X).
 
 % evaluate against a given list of functions
-eval_fun(P,S,lambda(A,C),T,O) :-!,bind_vars(S,E1,A,A1),!, unify(E1,Eo,A1,T), eval_block(['_'-P|Eo],_,C,O).
+eval_fun(P,S,lambda(A,C),T,O) :-!,bind_vars(S,E1,A,A1),!, unify(E1,Eo,A1,T,_), eval_block(['_'-P|Eo],_,C,O).
 eval_fun(P,S,call(disj,[A,B]),T,O) :- !, (eval_fun(P,S,A,T,O); \+ var(B),eval_fun(P,S,B,T,O)).
 
 quote_unf(E,E,id(X),X) :- !.
