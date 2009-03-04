@@ -1,5 +1,6 @@
 % strucural unification
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
+%unify(_,_,L,R,_) :- writef("\nunify: (%w) (%w)\n",[L,R]), fail.
 unify(E,E,[],[],[]) :- !.
 unify(E,Eo,L,R,O) :- (var(L) -> (var(R) -> (L=R, E=Eo,!);(!,unify_var(E,Eo,L,R),L=O));var(R), !, unify_var(E,Eo,R,L),R=O).
 
@@ -16,11 +17,11 @@ unify(E,Eo,p(P,A),Ro,Ro) :-  !, unify_var(E,E1,R,Ro) ,unify_p_l(P,E1,Eo,A,[],R,_
 unify(E,Eo,Lo,p(P,A),Lo) :-  !, unify_var(E,E1,L,Lo) ,unify_p_l(P,E1,Eo,A,[],L,_).
 
 unify(E,Eo,[Ho|To], [H|T],[Oh|Ot]) :-!,unify(E,E1,Ho,H,Oh),unify(E1,Eo,To,T,Ot).
-unify(E,Eo,call(Ho,To), call(H,T)) :-!,unify(E,E1,Ho,H),unify(E1,Eo,To,T).
-unify(E,Eo,lambda(Ho,To), lambda(H,T)) :-!,unify(E,E1,H,Ho), unify(E1,Eo,T,To).
-unify(E,Eo,block(X),O) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,Xo,O).
-unify(E,Eo,O,block(X)) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,O,Xo).
-unify(E,E,X,X) :- !.
+unify(E,Eo,call(Ho,To), call(H,T),call(Oh,Ot)) :-!,unify(E,E1,Ho,H,Oh),unify(E1,Eo,To,T,Ot).
+unify(E,Eo,lambda(Ho,To), lambda(H,T),lambda(Oh,Ot)) :-!,unify(E,E1,H,Ho,Oh), unify(E1,Eo,T,To,Ot).
+unify(E,Eo,block(X),O,J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,Xo,O,J).
+unify(E,Eo,O,block(X),J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,O,Xo,J).
+unify(E,E,X,X,X) :- !.
 
 unify_var(E,E,X,Y) :- var(Y),!,X=Y.
 unify_var(E,Eo,[H|To],[H|T]) :-  var(H),!, unify_var(E,Eo,To,T).

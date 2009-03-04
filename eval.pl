@@ -1,11 +1,14 @@
 reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,unf,in,
-    add,sub,div,mul,eq,le,lt,gt,ge,say,trace
+    add,sub,div,mul,eq,le,lt,gt,ge,say,trace,spawn, recv, send
     ]).
 make_environment([],[]).
 make_environment([W|T],[W-id(W)|To]) :- make_environment(T,To).
 
-evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
+spawn(E,C,Id) :- thread_create(eval(E,[],C,_), Id, []).
+send(Id,M) :- thread_send_message(Id,M),!.
+recv(M) :- thread_get_message(M),!.
 
+evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
 eval(E,E,X,X) :- var(X),!.
 eval(E,E,[],[]) :-!.
@@ -28,11 +31,14 @@ eval(E,Eo,call(xor,[X,Y]),Z) :- !,((eval(E,Eo,X,Z) *-> true);eval(E,Eo,Y,Z)).
 eval(E,E,call(not,X),[]) :- \+ eval(E,_,X,_), !.
 eval(E,Eo,call(ifthen,[X,Y]),Z) :- !,((evalone(E,E1,X,_) -> (!, eval(E1,Eo,Y,Z))); !,Z =[]).
 eval(E,Eo,call(if,X),Z) :- !,eval_if(E,Eo,X,Z). 
-eval(E,Eo,call(case,[X|T]),Z) :- !, bind_vars(E,E1,X,X1), eval_case(E1,Eo,X1,T,Z). 
+eval(E,Eo,call(case,[X|T]),Z) :- !, bind_vars(E,E1,X,X1),!, eval_case(E1,Eo,X1,T,Z). 
 eval(E,Eo,call(conj,X),Z) :- !,eval_conj(E,Eo,X,[],Z).
 eval(_,_,call(disj,[]),_) :- !, fail.
 eval(E,Eo,call(disj,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; !,eval(E1,Eo,call(disj,T),Z)).
 eval(E,Eo,call(eval,X),Z) :- !,bind_vars(E,E1,X,X1),!, eval(E1,Eo,X1,[Z]).
+eval(E,Eo,call(spawn,X),Z) :- !,bind_vars(E,Eo,X,X1),!, spawn(Eo,X1,Z).
+eval(E,Eo,call(send,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, send(X1,Y1).
+eval(E,Eo,call(recv,T),Z) :- !,recv(X), !,eval_case(E,Eo,X,T,Z). 
 eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Yo,[],_), eval(E,Eo,Yo,Z).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval_block(E,Eo,T,A),!.
@@ -58,6 +64,7 @@ eval_quote(call(def,T), call(def,T)) :-!.
 eval_quote(call(H,T), call(H,To)) :-!, eval_quote(T,To),!.
 eval_quote(X,X) :- !.
 
+%eval_case(_,_,A,T,_) :- writef("\ncase: [%w] [%w]\n",[A,T]),  fail.
 eval_case(E,E,_,[],[]).
 eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(E1,E2,A,X1,_)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
 eval_case(Ei,Eo,A,[X],O) :- !,bind_vars(Ei,E1,X,X1) , !, unify(E1,Eo,A,X1,O).
