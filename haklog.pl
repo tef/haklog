@@ -34,9 +34,8 @@ read_file(I,Li,Lo) :-  get_byte(I,C), ((C = -1,!,Lo=[]); Lo=[C|L1], read_file(I,
 % interpreter
 
 exec(X,E,O) :- 
-    parse(X,S),!,
+    (parse(X,S);write('Syntax Error'),nl,fail),!,
     reserved(R),
     make_environment(R,E1),
-    eval(E1,E,S,O),
-    hprint(O).
+    (eval(E1,E,S,O) *->hprint(O);write('Runtime Error'),nl,fail).
 

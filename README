@@ -31,6 +31,7 @@ foo ; bar       foo || bar
 foo *->[]; baz  for xor baz
 foo -> bar      foo -> bar
                 if (foo -> bar)* expr
+                case x (a -> foo)* b  (unifies x with b)
 fail            fail
 member(X,Y)     X in Y
 write           say
@@ -110,7 +111,8 @@ foo x :- (bar :- x)
 message passing works:
     id = spawn expression
     send id expr
-    recv m/ recv 0 -> 1 m
+    recv pid,m
+    recv pid,0 -> 1 
 
 
 anonymous functions are declared using _ i.e _ x :- x

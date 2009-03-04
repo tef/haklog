@@ -1,0 +1,9 @@
+foo :- {
+
+    recv p,n -> say([p n])
+
+}
+
+id = {spawn foo()}
+
+send id 12345
