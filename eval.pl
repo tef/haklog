@@ -60,7 +60,7 @@ eval_quote(X,X) :- !.
 
 eval_case(E,E,_,[],[]).
 eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(E1,E2,A,X1)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
-eval_case(Ei,Eo,_,[E],Ev) :- !, eval(Ei,Eo,E,Ev).
+eval_case(Ei,Eo,A,[X],X1) :- !,bind_vars(Ei,E1,X,X1) , !, unify(E1,Eo,A,X1).
 
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[call(ifthen,[X,Y])|T],O) :- !, (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))); eval_if(Ei,Eo,T,O). 

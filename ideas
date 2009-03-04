@@ -5,49 +5,43 @@ done:
     closures
     anonymous functions 
     foo() syntax
+    y combinator
+    maybe, $ call syntax
+
+bugs:
+    iron out bugs in unification 
+
+
+housekeeping:
+    make unify return value, avoid pattern in value
+    pretty printer
+
+data structures:
+    string handling: pattern matching over strings, variable capture, dcg akin?
+    strings, "foo" , string patterns
+    string operations ? more sugar ? 
+     x = /\w+ \d+/
+    icon combinatorics? ++ backtracking append
+    
+    mutable variables
+    meta-types? classes/objects? alternatively meta lists - things with list semantics + others
+
 
 possible language features:
-    string handling: pattern matching over strings, variable capture, dcg akin?
-    string operations ? more sugar ? 
-    icon combinatorics? ++ backtracking append
-    difference lists? pegs? dcgs?
-
     aggregate operators  3 + list is  {every (X in list && 3 + X)}
     message passing? erlang-like concurrency ? modules ? libraries?
     i/o ? 
-    mutable assignment?
+
+syntax:
     xml literals? url literals?
-
---
-evaluation context vs unification context 
-
-need to always unify args before evaling, esp for 
-apply ?
-
-no - assignment is always in a unification context
---
-message passing:
-
-use swi prolog threading
+    range matches 0,1 1: 3..4
+    [] lookup foo[fofo] 
+    xpath ?
 
 --
 pattern matching.
 
-unification needs some more fine tuning:
-
-need peg style ops to indicate matching
-
-akin to python's tuple unpacking
-we have a cons, we need an embed/star operator
-1 2 X* 4 -> 1,2,X0,X1,...,4
-we also need greedy/non greedy operators.
-
-problem - ambiguous grammar 
-option 1:
-    use different operators
-    use prefix instead of postfix operators.
-    context sensitive operators
-
+peg operators;
 
 *           kleene star     any
 +                           some
@@ -58,75 +52,24 @@ option 1:
 +?                          somez    
 ??                          maybez
 
+message passing/processes:
 
-we also need a bind operator
-i.e Z = X ? [1 2] or X = [1 2]:X
-to unify against one and bind to the other. ? is nice, so 
-a a  :.
+send X blah blah blah
 
-X = Z ? "a"*, A ? "b"* ,D ?/c/.
-D = "abc"*
+recv x 1 -> 2 3 ->4
 
-X = *"a":a, *"b":b, *"c",
-// <- string pattern syntax? with character classes
-
-range matches 0,1 1: 3..4
-lookahead ?
-
-x?*
+spawn
 
 
-idea - build normal commands first range(x,0,1) range(x,0,1) etc
---
 
-mutable variables - I have been thinking about pure and impure functions when I should have been
-thinking about mutable and immutable variables.  inessence: set x! 1 not set! x 1. Use ! to denote
-a mutable variable.
+string ideas:
 
---
+"foo ${} $a"
+""" fooo foo
+foo foo"
 
-objects:
+regexes?
+/foo bar /
 
-foo x y z| bar a b c -> bar {foo x y z} a b c
-| as lookup
-
-foo|method x y z
-
---
-next steps: nail down semantics and features and freeze the language spec
-
-refactor into mercury:
-    faster implementation straight away
-    distributable binary
-    easier to add new semantics
-
-translation into prolog:
-    possible - also faster implementation
-    future compilation strategy
-    more annoying to add semantics
---
-roadmap to hardware:
-
-compile haklog to more and more concrete languages:
-i.e to prolog, then to mercury? 
-
-add more levels of inference: 
-    type, mode, regions, and static garbage collection
-    i.e copy prolog, mercury compilers, python ?
-
-    compile to prolog, then to python.
-    use python for things like ctypes
-    llvm backend ? 
-
---
-c vm ? 
-    add ctypes library
-    write haklog to bytecode 
-    build io/alloc library 
-        files, heaps ?
-        asychronous io ?
-
---
-    objects
-
+string replacement ?
 

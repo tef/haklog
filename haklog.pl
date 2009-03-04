@@ -1,9 +1,12 @@
 #!/usr/bin/swipl -q -t start -f 
 
-:- consult('parser.pl').
-:- consult('eval.pl').
-:- consult('unify.pl').
-:- consult('print.pl').
+hk :- consult('parser.pl'),
+    consult('eval.pl'),
+    consult('unify.pl'),
+    consult('print.pl'),
+    consult('print.pl').
+
+:- hk.
 
 start :-    catch(main,E,(print_message(error,E),fail)),    halt.
 start :-    halt.
