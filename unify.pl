@@ -26,8 +26,9 @@ unify(E,E,X,X,X) :- !.
 unify_var(E,E,X,Y) :- var(Y),!,X=Y.
 unify_var(E,Eo,[H|To],[H|T]) :-  var(H),!, unify_var(E,Eo,To,T).
 unify_var(E,E,[],[]) :-!.
-unify_var(E,Eo,O,p(P,A)) :- !, unify_var_p(P,E,Eo,A,[],O).
-unify_var(E,Eo,O,[p(P,A)|T]) :- !, unify_var_p(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T).
+unify_var(E,Eo,O,p(P,A)) :- !, var(A) *-> unify_var_p(P,E,Eo,A,[],O); (unify_var_p(P,E,Eo,A,[],O),!).
+unify_var(E,Eo,O,[p(P,A)|T]) :- !, var(A) *-> (unify_var_p(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T)); (unify_var_p(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T),!).
+
 unify_var(E,Eo,[Ho|To],[H|T]) :- !,unify_var(E,E1,Ho,H), unify_var(E1,Eo,To,T).
 unify_var(E,E,call(def,T), call(def,T)) :-!.
 unify_var(E,Eo,call(Ho,To), call(H,T)) :-!,unify_var(E,E1,Ho,H),unify_var(E1,Eo,To,T).

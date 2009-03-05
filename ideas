@@ -7,13 +7,14 @@ done:
     foo() syntax
     y combinator
     maybe, $ call syntax
+    make unify return value, avoid pattern in value
+    partial pretty printer 
 
 bugs:
     iron out bugs in unification 
 
 
 housekeeping:
-    make unify return value, avoid pattern in value
     pretty printer
 
 data structures:
@@ -72,4 +73,4 @@ regexes?
 /foo bar /
 
 string replacement ?
-
+:

@@ -10,6 +10,7 @@ recv(M) :- thread_get_message(M),!.
 
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
+%eval(_,_,X,_) :-  writef("Eval: %w",[X]), fail.
 eval(E,E,X,X) :- var(X),!.
 eval(E,E,[],[]) :-!.
 eval(_,_,call(id(fail),_),_) :- !,fail.
@@ -18,6 +19,7 @@ eval(_,_,id(fail),_) :- !,fail.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
 eval(E,E,call(quote,[X]), Xo) :- !, eval_quote(X,Xo).
 eval(Ei,Eo,id(X),O) :- bind_variable(Ei,Eo,X,O),!.
+eval(Ei,Eo,p(P,A),O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var(E1,Eo,O,p(P,A1)).
 eval(E,E,lambda(X,Y),lambda(X,Y)) :-!. % this is here so when X is defined as call(disj...) 
 eval(E,Eo,call(def,[call(N,A)|Y]),lambda(Ao,Yo)) :- 
     bind_lambda_vars(N,[],A,Ao,[],Av), !, bind_lambda_vars(N,E,Y,Yo,Av,_), !,
@@ -41,7 +43,7 @@ eval(E,Eo,call(send,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, s
 eval(E,Eo,call(recv,T),Z) :- !,recv(X), !,eval_case(E,Eo,X,T,Z). 
 eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Yo,[],_), eval(E,Eo,Yo,Z).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
-eval(E,Eo,call(once,T),A) :- !,eval_block(E,Eo,T,A),!.
+eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
 eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,unify(E2,Eo,A1,B1,O).
 eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,eval(E1,Eo,B,A1).
 eval(E,Eo,call(H,T),O) :-  \+ var(H),
@@ -53,6 +55,8 @@ eval(E,Eo,call(H,T),O) :-  \+ var(H),
     (H = id(Ho), !, eval(E,Eo,call(Ho,T),O));
     (!,eval(E,E1,H,Ho),\+H=Ho,eval(E1,Eo,call(Ho,T),O)).
 
+eval(E,Eo,[H|T],[H|To]) :- var(H),!,eval(E,Eo,T,To).
+eval(Ei,Eo,[p(P,A)|Lt],O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var(E1,E2,Po,p(P,A1)),join(Po,T,O), eval(E2,Eo,Lt,T).
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
 eval(E,E,X,X) :- number(X),!.
 eval(E,E,X,X) :- atom(X),!.
