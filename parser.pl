@@ -73,9 +73,9 @@ idfollow(O,X,N1) --> !,follow(id(X), O, N1).
 % to follow, to check for infix stuff (that contains it)
 follow(L,O,N1) --> "[",!, ws, exprl(Op, 100), ws, "]",! , follow(index(L,Op), O ,N1).
 follow(L,O,N1) --> "(",!, ws, exprl(Op, 90), ws, ")",!, follow(call(L,Op), O ,N1).
+follow(L,O,N1) --> (postfix(Op,N) -> {N =< N1}), !, build(Op,L,Z), follow(Z, O, N1).
 follow(L,O,N1) --> {90 < N1},ws,"$" ,!, ws, exprl(Op, 90), ws,!, follow(call(L,Op), O ,N1).
 follow(L,O,N1) --> ws, (infix(Op,As,N) -> {assoc(As,N, N1)}), !,ws, exprn(R,N),!, build(Op,L,R,Z), follow(Z, O, N1).
-%follow(L,O,N1) --> ws, (postfix(Op,N) -> {N =< N1}), !,follow(call(Op,[L]), O, N1).
 follow(O,O,_) --> !.
 
 assoc(right, A, B) :-  A =< B.
@@ -119,13 +119,13 @@ infix(or,right,96) --> "or".
 infix(xor,right,96) --> "xor".
 infix(in,right,60) --> "in".
 
-prefix(zany,4) --> "*?".
-prefix(zsome,4) --> "+?".
-prefix(zmaybe,4) --> "??".
+postfix(zany,4) --> "*?".
+postfix(zsome,4) --> "+?".
+postfix(zmaybe,4) --> "??".
 
-prefix(any,4) --> "*",\+"?".
-prefix(some,4) --> "+", \+"?".
-prefix(maybe,4) --> "?", \+"?".
+postfix(any,4) --> "*",\+"?".
+postfix(some,4) --> "+", \+"?".
+postfix(maybe,4) --> "?", \+"?".
 prefix(isnt,4) --> "!".
 prefix(ahead,4) --> "&", \+ "&".
  

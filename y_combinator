@@ -1,6 +1,6 @@
 fact f :- {
     _ a :- {
-        case a 0 -> 1 a -> a*f({a-1})
+        case a 0 -> 1 a -> a * f({a - 1})
     }
  }
  y f :-(_ x :-(f { _ a :- x x $ a}))$ {_ x :- f {_ a :- x x $ a}};

@@ -114,6 +114,9 @@ message passing works:
     recv pid,m
     recv pid,0 -> 1 
 
+pattern matching:
+
+    append x y = [x* y*]
 
 anonymous functions are declared using _ i.e _ x :- x
 

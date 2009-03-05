@@ -44,6 +44,7 @@ pattern matching.
 
 peg operators;
 
+postfix:
 *           kleene star     any
 +                           some
     {m,n}
@@ -52,6 +53,10 @@ peg operators;
 *?                          anyz
 +?                          somez    
 ??                          maybez
+
+prefix:
+! isnt  negative lookahead
+& ahead positive lookahead
 
 message passing/processes:
 

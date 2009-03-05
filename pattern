@@ -1,5 +1,5 @@
 a = [1 2]
 say a
 every {
-    [(*x) (*y)] = [1 2] && say [x y] 
+    [x* y*] = [1 2] && say [x y] 
 }     
