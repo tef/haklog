@@ -11,10 +11,12 @@ unify(E,Eo,L,[p(P,A)|Rt],L) :-  var(L), !, unify_var_p(P,E,Eo,A,Rt,L).
 unify(E,Eo,[p(P,A)|Lt],R,R) :-  var(R), !, unify_var_p(P,E,Eo,A,Lt,R).
 unify(E,Eo,[L|Lt],[R|Rt],[L|O]) :-  var(L), !,unify_var(E,E1,L,R), unify(E1,Eo,Lt,Rt,O). 
 unify(E,Eo,[L|Lt],[R|Rt],[R|O]) :-  var(R), !,unify_var(E,E1,R,L), unify(E1,Eo,Lt,Rt,O). 
-unify(E,Eo,[p(P,A)|Lt],Ro,Ro) :-  !, unify_var(E,E1,R,Ro) ,unify_p_l(P,E1,Eo,A,Lt,R,_).
+unify(E,Eo,[p(P,A)|Lt],Ro,Ro) :-  !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
 unify(E,Eo,Lo,[p(P,A)|Rt],Lo) :-  !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,_).
-unify(E,Eo,p(P,A),Ro,Ro) :-  !, unify_var(E,E1,R,Ro) ,unify_p_l(P,E1,Eo,A,[],R,_).
-unify(E,Eo,Lo,p(P,A),Lo) :-  !, unify_var(E,E1,L,Lo) ,unify_p_l(P,E1,Eo,A,[],L,_).
+unify(E,Eo,p(P,A),Ro,Ro) :-  !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,[],R,_).
+unify(E,Eo,Lo,p(P,A),Lo) :-  !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,[],L,_).
+unify(E,Eo,call(concat,[A,B]),R,Ro) :-  !,unify_var(E,Eo,Ro,R),concat(A,B,Ro).
+unify(E,Eo,L,call(concat,[A,B]),Lo) :-  !,unify_var(E,Eo,L,Lo), concat(A,B,Lo).
 
 unify(E,Eo,[Ho|To], [H|T],[Oh|Ot]) :-!,unify(E,E1,Ho,H,Oh),unify(E1,Eo,To,T,Ot).
 unify(E,Eo,call(Ho,To), call(H,T),call(Oh,Ot)) :-!,unify(E,E1,Ho,H,Oh),unify(E1,Eo,To,T,Ot).
@@ -23,6 +25,7 @@ unify(E,Eo,block(X),O,J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,Xo,O,J).
 unify(E,Eo,O,block(X),J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,O,Xo,J).
 unify(E,E,X,X,X) :- !.
 
+
 unify_var(E,E,X,Y) :- var(Y),!,X=Y.
 unify_var(E,Eo,[H|To],[H|T]) :-  var(H),!, unify_var(E,Eo,To,T).
 unify_var(E,E,[],[]) :-!.
@@ -30,6 +33,7 @@ unify_var(E,Eo,O,p(P,A)) :- !, var(A) *-> unify_var_p(P,E,Eo,A,[],O); (unify_var
 unify_var(E,Eo,O,[p(P,A)|T]) :- !, var(A) *-> (unify_var_p(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T)); (unify_var_p(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T),!).
 
 unify_var(E,Eo,[Ho|To],[H|T]) :- !,unify_var(E,E1,Ho,H), unify_var(E1,Eo,To,T).
+unify_var(E,Eo,O,call(concat,[A,B])) :-  concat(A,B,L),!, unify_var(E,Eo,O,L).
 unify_var(E,E,call(def,T), call(def,T)) :-!.
 unify_var(E,Eo,call(Ho,To), call(H,T)) :-!,unify_var(E,E1,Ho,H),unify_var(E1,Eo,To,T).
 unify_var(E,E,lambda(H,T), lambda(H,T)) :-!.

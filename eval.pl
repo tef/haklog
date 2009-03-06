@@ -4,6 +4,11 @@ reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,un
 make_environment([],[]).
 make_environment([W|T],[W-id(W)|To]) :- make_environment(T,To).
 
+concat(A,B,O) :- string(A), string(B), !, string_concat(A,B,O).
+concat(A,B,O) :- atom(A),!, string_to_atom(S,A), !, concat(S,B,O).
+concat(B,A,O) :- atom(A),!, string_to_atom(S,A), !, concat(B,S,O).
+concat(A,B,O) :- \+ var(O), (var(A); var(B)), !, string_concat(A,B,O).
+
 spawn(E,C,pid(Id)) :- thread_create(eval(E,[],C,_), Id, []).
 send(pid(Id),M) :- thread_send_message(Id,[pid(Id)|M]),!.
 recv(M) :- thread_get_message(M),!.
@@ -47,6 +52,7 @@ eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Y
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
 eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,unify(E2,Eo,A1,B1,O).
+eval(E,Eo,call(concat,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,eval(E2,E3,A1,A2), eval(E3,Eo,B1,B2), concat(A2,B2,O).
 eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,eval(E1,Eo,B,A1).
 eval(E,Eo,call(H,T),O) :-  \+ var(H),
     atom(H) -> (
@@ -55,13 +61,14 @@ eval(E,Eo,call(H,T),O) :-  \+ var(H),
     );
     ((H = lambda(_,_);H = call(disj,_)), !, bind_vars(E,Eo,T,To),!,eval_fun(E,['_rec'-H],H,To,O));
     (H = id(Ho), !, eval(E,Eo,call(Ho,T),O));
+    (string(H), !, string_to_atom(H,Ho), !, eval(E,Eo,call(Ho,T),O));
     (!,eval(E,E1,H,Ho),\+H=Ho,eval(E1,Eo,call(Ho,T),O)).
 
 eval(E,Eo,[H|T],[H|To]) :- var(H),!,eval(E,Eo,T,To).
 eval(Ei,Eo,[p(P,A)|Lt],O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var(E1,E2,Po,p(P,A1)),join(Po,T,O), eval(E2,Eo,Lt,T).
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
-eval(E,E,X,X) :- number(X),!.
-eval(E,E,X,X) :- atom(X),!.
+eval(E,E,X,X) :- atomic(X),!.
+eval(E,E,X,X) :- string(X),!.
 eval(E,E,X,X) :- var(X),!.
 
 eval_quote(id(X),X) :- !.

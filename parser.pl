@@ -12,7 +12,7 @@ csyms([H|T]) --> csym(H), csyms(T).
 csyms([]) --> [].
 csym(C) --> [C], {code_type(C, csymf)}.
 
-string(A) --> "\"", chars(S), {string_to_atom(S,A)},!.
+string(A) --> "\"", chars(S), {string_to_list(A,S)},!.
 chars([]) --> "\"".
 chars(["\""|T]) --> "\\\"", chars(T).
 chars([H|T]) --> [H], chars(T).
@@ -107,6 +107,7 @@ infix(lt,right,60) --> "<".
 infix(cons,right,55) --> ",".
 infix(bind,left,75) --> ":".
 infix(where,left,97) --> "where".
+infix(concat,left,50) --> "++".
 infix(add,right,50) --> "+".
 infix(sub,right,50) --> "-".
 infix(mul,right,45) --> "*".
