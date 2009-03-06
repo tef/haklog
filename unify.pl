@@ -1,8 +1,8 @@
 % strucural unification
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 %unify(_,_,L,R,_) :- writef("\nunify: (%w) (%w)\n",[L,R]), fail.
-unify(E,E,[],[],[]) :- !.
 unify(E,Eo,L,R,O) :- (var(L) -> (var(R) -> (L=R, E=Eo,!);(!,unify_var(E,Eo,L,R),L=O));var(R), !, unify_var(E,Eo,R,L),R=O).
+unify(E,E,[],[],[]) :- !.
 
 unify(_,_,[],[H|_],_) :- var(H) , !, fail.
 unify(_,_,[H|_],[],_) :- var(H) , !, fail.
@@ -64,7 +64,7 @@ unify_p_l(zany,E,Eo,[],T,To,[]) :- unify(E,Eo,T,To,_).
 unify_p_l(zany,E,Eo,[A|At],To,[H|T],[H|C]) :- unify(E,E1,A,H,_), unify_p_l(zany,E1,Eo,At,To,T,C).
 unify_p_l(some,E,Eo,[A|At],To,[H|T],[H|C]) :- unify(E,E1,A,H,_), unify_p_l(any,E1,Eo,At,To,T,C).
 unify_p_l(zsome,E,Eo,[A|At],To,[H|T],[H|C]) :- unify(E,E1,A,H,_), unify_p_l(zany,E1,Eo,At,To,T,C).
-unify_p_l(maybe,E,Eo,A,T,[H|To],H) :- unify(E,E1,A,H), unify(E1,Eo,T,To,_).
+unify_p_l(maybe,E,Eo,A,T,[H|To],H) :- unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
 unify_p_l(maybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).
 unify_p_l(zmaybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).
 unify_p_l(zmaybe,E,Eo,A,T,[H|To],H) :- unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
