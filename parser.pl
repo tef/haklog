@@ -90,7 +90,8 @@ build(zmaybe,R,p(zmaybe,R)) --> !.
 build(ahead,R,p(ahead,R)) --> !.
 build(isnt,R,p(isnt,R)) --> !.
 build(C,R,call(C,R)) --> !.
-build(cons,L,R,[L|R]) --> !.
+build(concat,L,R,p(concat,[L,R])) --> !.
+build(cons,L,R,[L|R]) --> !. 
 build(pair,L,R,[L,R]) --> !.
 build(bind,L,R,p(bind,[L,R])) --> !.
 build(choice,L,R,p(choice,[L,R])) --> !.
