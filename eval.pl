@@ -4,12 +4,13 @@ reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,un
 make_environment([],[]).
 make_environment([W|T],[W-id(W)|To]) :- make_environment(T,To).
 
-concat(A,B,O) :- string(A), string(B), !, string_concat(A,B,O).
-concat(A,B,O) :- atom(A),!, string_to_atom(S,A), !, concat(S,B,O).
-concat(B,A,O) :- atom(A),!, string_to_atom(S,A), !, concat(B,S,O).
+concat(A,B,O) :- to_string(A,A1), to_string(B,B1), !, string_concat(A1,B1,O).
 concat(A,B,O) :- \+ var(O), (var(A); var(B)), !, string_concat(A,B,O).
 concat(p(concat,[A1,A2]),B,O) :- !, string_concat(A,B,O), concat(A1,A2,A).
 concat(A,p(concat,[B1,B2]),O) :- !, string_concat(A,B,O), concat(B1,B2,B).
+
+to_string(A,A) :- !,string(A).
+to_string(A,S) :- !,atom(A), string_to_atom(A,S).
 
 
 spawn(E,C,pid(Id)) :- thread_create(eval(E,[],C,_), Id, []).
