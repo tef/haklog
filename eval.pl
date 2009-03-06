@@ -38,6 +38,8 @@ eval(E,Eo,call(conj,X),Z) :- !,eval_conj(E,Eo,X,[],Z).
 eval(_,_,call(disj,[]),_) :- !, fail.
 eval(E,Eo,call(disj,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; !,eval(E1,Eo,call(disj,T),Z)).
 eval(E,Eo,call(eval,X),Z) :- !,bind_vars(E,E1,X,X1),!, eval(E1,Eo,X1,[Z]).
+eval(E,E,call(say,[]),[]) :- !,nl.
+eval(E,Eo,call(say,[X|T]),O) :- !,bind_vars(E,E1,X,X1),!, hprint(X1), eval(E1,Eo,call(say,T),O).
 eval(E,Eo,call(spawn,X),Z) :- !,bind_vars(E,Eo,X,X1),!, spawn(Eo,X1,Z).
 eval(E,Eo,call(send,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, send(X1,Y1).
 eval(E,Eo,call(recv,T),Z) :- !,recv(X), !,eval_case(E,Eo,X,T,Z). 
@@ -149,10 +151,3 @@ builtin(lt). apply(lt,[X,Y],Y) :-  X <Y,!.
 builtin(le). apply(le,[X,Y],Y) :-  X =<Y,!.
 builtin(gt). apply(gt,[X,Y],Y) :-  X >Y,!.
 builtin(ge). apply(ge,[X,Y],Y) :-  X >=Y,!.
-builtin(say).
-apply(say,[],[]):-nl,!.
-apply(say,[H|T],[]) :- say(H),!,apply(say,T,[]),!.
-builtin(cons). apply(cons,[X,Y],[X|Y]):-!.
-builtin(list). apply(list,X,X):-!.
-say(X) :- write(X),!.
-
