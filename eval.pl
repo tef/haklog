@@ -8,6 +8,9 @@ concat(A,B,O) :- string(A), string(B), !, string_concat(A,B,O).
 concat(A,B,O) :- atom(A),!, string_to_atom(S,A), !, concat(S,B,O).
 concat(B,A,O) :- atom(A),!, string_to_atom(S,A), !, concat(B,S,O).
 concat(A,B,O) :- \+ var(O), (var(A); var(B)), !, string_concat(A,B,O).
+concat(p(concat,[A1,A2]),B,O) :- !, string_concat(A,B,O), concat(A1,A2,A).
+concat(A,p(concat,[B1,B2]),O) :- !, string_concat(A,B,O), concat(B1,B2,B).
+
 
 spawn(E,C,pid(Id)) :- thread_create(eval(E,[],C,_), Id, []).
 send(pid(Id),M) :- thread_send_message(Id,[pid(Id)|M]),!.

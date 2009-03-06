@@ -7,8 +7,8 @@ unify(E,E,[],[],[]) :- !.
 unify(_,_,[],[H|_],_) :- var(H) , !, fail.
 unify(_,_,[H|_],[],_) :- var(H) , !, fail.
 
-unify(E,Eo,L,[p(P,A)|Rt],L) :-  var(L), !, unify_var_p(P,E,Eo,A,Rt,L).
-unify(E,Eo,[p(P,A)|Lt],R,R) :-  var(R), !, unify_var_p(P,E,Eo,A,Lt,R).
+unify(E,Eo,L,[p(P,A)|Rt],L) :-  var(L), !, unify_var_p_l(P,E,Eo,A,Rt,L).
+unify(E,Eo,[p(P,A)|Lt],R,R) :-  var(R), !, unify_var_p_l(P,E,Eo,A,Lt,R).
 unify(E,Eo,[L|Lt],[R|Rt],[L|O]) :-  var(L), !,unify_var(E,E1,L,R), unify(E1,Eo,Lt,Rt,O). 
 unify(E,Eo,[L|Lt],[R|Rt],[R|O]) :-  var(R), !,unify_var(E,E1,R,L), unify(E1,Eo,Lt,Rt,O). 
 unify(E,Eo,[p(P,A)|Lt],Ro,O) :-  !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,O).
@@ -27,8 +27,8 @@ unify(E,E,X,X,X) :- !.
 unify_var(E,E,X,Y) :- var(Y),!,X=Y.
 unify_var(E,Eo,[H|To],[H|T]) :-  var(H),!, unify_var(E,Eo,To,T).
 unify_var(E,E,[],[]) :-!.
-unify_var(E,Eo,O,p(P,A)) :- !, var(A) *-> unify_var_p(P,E,Eo,A,[],O); (unify_var_p(P,E,Eo,A,[],O),!).
-unify_var(E,Eo,O,[p(P,A)|T]) :- !, var(A) *-> (unify_var_p(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T)); (unify_var_p(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T),!).
+unify_var(E,Eo,O,p(P,A)) :- !, var(A) *-> unify_var_p(P,E,Eo,A,O); (unify_var_p(P,E,Eo,A,O),!).
+unify_var(E,Eo,O,[p(P,A)|T]) :- !, var(A) *-> (unify_var_p_l(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T)); (unify_var_p_l(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T),!).
 
 unify_var(E,Eo,[Ho|To],[H|T]) :- !,unify_var(E,E1,Ho,H), unify_var(E1,Eo,To,T).
 unify_var(E,E,call(def,T), call(def,T)) :-!.
@@ -37,18 +37,23 @@ unify_var(E,E,lambda(H,T), lambda(H,T)) :-!.
 unify_var(E,Eo,O,block(X)) :- !, eval_block(E,E1,X,Xo), unify_var(E1,Eo,O,Xo).
 unify_var(E,E,X,X) :- !.
 
-unify_var_p(P,E,Eo,X,L,[p(P,X)|R]) :- var(X),!, unify_var(E,Eo,R,L).
-unify_var_p(bind,E,Eo,[L1,L2],Lt,R) :-   !, unify_var(E,E1,R,L1), unify_var(E1,E2,L2,R), unify(E2,Eo,Lt,[],_).
-unify_var_p(concat,E,Eo,[L1,L2],Lt,R) :-   !, unify_var(E,E1,A,L1), unify_var(E1,E2,B,L2), concat(A,B,R), unify(E2,Eo,Lt,[],_).
-unify_var_p(choice,E,Eo,[L1,L2],Lt,R) :-   !, (unify_var(E,E1,R,L1) *-> unify(E1,Eo,Lt,[],_); (unify_var(E,E1,R,L2), unify(E1,Eo,Lt,[],_))).
-unify_var_p(ahead,E,Eo,L,Lt,R) :-   !,unify_var(E,E1,R,L), unify_var(E1,Eo,R,Lt).
-unify_var_p(isnt,E,Eo,L,Lt,R) :-   !,\+ unify_var(E,_,[L],R), unify_var(E,Eo,R,Lt).
-unify_var_p(any,E,Eo,L,Lt,R) :-   !,((unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_)); unify_var(E,Eo,R,Lt)).
-unify_var_p(some,E,Eo,L,Lt,R) :-   !,unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_).
-unify_var_p(maybe,E,Eo,L,Lt,[R|Rt]) :-  !,((unify_var(E,E1,R,L), unify(E1,Eo,Lt,Rt,_)); unify(E,Eo,Lt,[R|Rt],_)). 
-unify_var_p(zany,E,Eo,L,Lt,R) :-   !,( unify_var(E,Eo,R,Lt);(unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_))).
-unify_var_p(zsome,E,Eo,L,Lt,R) :-   !,unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_).
-unify_var_p(zmaybe,E,Eo,L,Lt,[R|Rt]) :-  !,(unify(E,Eo,Lt,[R|Rt],_); (unify_var(E,E1,R,L), unify(E1,Eo,Lt,Rt,_))). 
+unify_var_p(concat,E,Eo,[L1,L2],R) :-   !, unify_var(E,E1,A,L1), unify_var(E1,Eo,B,L2), concat(A,B,R). 
+unify_var_p(maybe,E,Eo,X,R) :- !, unify_var_p_l(maybe,E,Eo,X,[],[R]).
+unify_var_p(zmaybe,E,Eo,X,R) :- !, unify_var_p_l(zmaybe,E,Eo,X,[],[R]).
+unify_var_p(P,E,Eo,X,R) :- !, unify_var_p_l(P,E,Eo,X,[],R).
+
+unify_var_p_l(P,E,Eo,X,L,[p(P,X)|R]) :- var(X),!, unify_var(E,Eo,R,L).
+unify_var_p_l(bind,E,Eo,[L1,L2],Lt,R) :-   !, unify_var(E,E1,R,L1), unify_var(E1,E2,L2,R), unify(E2,Eo,Lt,[],_).
+unify_var_p_l(concat,E,Eo,[L1,L2],Lt,[R|Rt]) :-   !, unify_var(E,E1,A,L1), unify_var(E1,E2,B,L2), concat(A,B,R), unify(E2,Eo,Lt,Rt,_).
+unify_var_p_l(choice,E,Eo,[L1,L2],Lt,R) :-   !, (unify_var(E,E1,R,L1) *-> unify(E1,Eo,Lt,[],_); (unify_var(E,E1,R,L2), unify(E1,Eo,Lt,[],_))).
+unify_var_p_l(ahead,E,Eo,L,Lt,R) :-   !,unify_var(E,E1,R,L), unify_var(E1,Eo,R,Lt).
+unify_var_p_l(isnt,E,Eo,L,Lt,R) :-   !,\+ unify_var(E,_,[L],R), unify_var(E,Eo,R,Lt).
+unify_var_p_l(any,E,Eo,L,Lt,R) :-   !,((unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_)); unify_var(E,Eo,R,Lt)).
+unify_var_p_l(some,E,Eo,L,Lt,R) :-   !,unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_).
+unify_var_p_l(maybe,E,Eo,L,Lt,[R|Rt]) :-  !,((unify_var(E,E1,R,L), unify(E1,Eo,Lt,Rt,_)); unify(E,Eo,Lt,[R|Rt],_)). 
+unify_var_p_l(zany,E,Eo,L,Lt,R) :-   !,( unify_var(E,Eo,R,Lt);(unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_))).
+unify_var_p_l(zsome,E,Eo,L,Lt,R) :-   !,unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_).
+unify_var_p_l(zmaybe,E,Eo,L,Lt,[R|Rt]) :-  !,(unify(E,Eo,Lt,[R|Rt],_); (unify_var(E,E1,R,L), unify(E1,Eo,Lt,Rt,_))). 
 
 unify_p(concat,E,Eo,[L1,L2],H,Ho) :- !, unify_var(E,E1,A,L1), unify_var(E1,E2,B,L2), unify_var(E2,Eo,Ho,H),concat(A,B,Ho).
 unify_p(maybe,E,Eo,A,R,C):-  !,unify_p_l(maybe,E,Eo,A,[],[R],C).
