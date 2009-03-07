@@ -70,6 +70,19 @@ spawn
 
 string ideas:
 
+use prolog native strings.
+
+need to turn concat into a stream operator
+
+
+alternatively: treat append like cons, strings like lists
+
+magic cons as "aa" ++ x would treat x like a char and x* as a string, but "aa" ++ "bb" would be automa
+tically "aabb"
+
+iterable(L,H,T) :- L = [H|T].
+
+
 "foo ${} $a"
 """ fooo foo
 foo foo"
