@@ -1,10 +1,10 @@
 #!/usr/bin/swipl -q -t start -f 
 
-hk :- consult('parser.pl'),
-    consult('eval.pl'),
-    consult('unify.pl'),
-    consult('print.pl'),
-    consult('print.pl').
+hk :- consult('parser.pro'),
+    consult('eval.pro'),
+    consult('unify.pro'),
+    consult('print.pro'),
+    consult('print.pro').
 
 :- hk.
 
