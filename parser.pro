@@ -59,13 +59,23 @@ regex(T,N) --> "^",ws,!,rx_list(T,N).
 regex([p(zany,id('_'))|T],N) --> ws,rx_list(T,N),!.
 regex([],_) --> ws.
 
-rx_list([H|T],N) --> rx(H,N),ws,!, rx_list(T,N).
+class_list([H|T]) --> rx_class(H), class_list(T).
+class_list([]) --> ws.
+
+rx_list([H|T],N) --> rx(H,N), ws,!, rx_list(T,N).
 rx_list([],_) -->  ws, "$",!.
 rx_list([p(any,_)],_) --> ws.
 
+rx_class(_) --> ("/";")";"]";"$"),!,{fail}.
+rx_class(O) --> "(" ,!, ws,  rx(O, 100), ws, ")" .
+rx_class(O) --> "\\",!, rxescapes(O).
+rx_class(O) --> csym(A), "-", csym(B),!, {string_to_atom([L1],A), string_to_atom([L2],B)}, rxbuild(range,L1,L2,O).
+rx_class(O) --> [L], {string_to_atom([L],O)}.
+
 rx(_,_) --> ("/";")";"]";"$"),!,{fail}.
 rx(O,N1) --> "(" ,!, ws,  rx(Op, 100), ws, ")" , rxfollow(Op, O ,N1).
-rx(O,N1) --> "[" ,!, ws,  regex(Op, 100), ws, "]", rxbuild(choice,Op,Z), rxfollow(Z, O ,N1).
+rx(O,N1) --> "[^" ,!, ws,  class_list(Op), ws, "]", rxbuild(choice,Op,Z), rxbuild(isnt,Z,Z1),  rxfollow(Z1, O ,N1).
+rx(O,N1) --> "[" ,!, ws,  class_list(Op), ws, "]", rxbuild(choice,Op,Z), rxfollow(Z, O ,N1).
 rx(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , rxfollow(block(Op), O ,N1).
 rx(O,N1) --> prefix(Op, N), regexop(Op), !, { N =< N1 }, ws, rx(R,N), !, rxbuild(Op,R,Z), rxfollow(Z, O, N1).
 rx(O,N1) --> ".",!, rxbuild(dot,C),rxfollow(C,O,N1).
@@ -118,6 +128,7 @@ rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
 rxbuild(N,p(N,[])) --> !.
 rxbuild(choice,X,p(choice,X)) --> !.
 rxbuild(class,X,p(class,X)) --> !.
+rxbuild(crange,X,p(crange,X)) --> !.
 rxbuild(P,R,L) --> build(P,R,L).
 rxbuild(bind,L,R,p(bind,[L,id(R)])) --> !.
 rxbuild(P,R,L,O) --> build(P,R,L,O).
