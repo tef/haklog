@@ -1,12 +1,4 @@
 % strucural unification
-join(A,[],A) :- !.
-join(A,B,C) :- string(A), string(B), !, string_concat(A,B,C).
-join(A,B,C) :- append(A,B,C),!;append([A],B,C).
-to_list(S,L) :- string(S), string_to_list(S,L),!.
-expr_to_string(S,S) :- string(S),!.
-expr_to_string(V,S) :- \+var(V), V = [], string_to_list(S,[]).
-expr_to_string(I,S) :- atom(I), string_to_atom(S,I),!.
-
 %unify(_,_,L,R,_) :- writef("\nunify: (%w) (%w)\n",[L,R]), fail.
 
 unify(E,Eo,L,R,O) :- (var(L) -> (var(R) -> (L=R, E=Eo,!);(!,unify_var(E,Eo,L,R),L=O));var(R), !, unify_var(E,Eo,R,L),R=O).
@@ -94,31 +86,3 @@ unify_p_l(maybe,E,Eo,A,T,R,H) :- iterable_head_tail(R,H,To), unify(E,E1,A,H,_), 
 unify_p_l(maybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).
 unify_p_l(zmaybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).
 unify_p_l(zmaybe,E,Eo,A,T,R,H) :- iterable_head_tail(R,H,To), unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
-
-iterable_pair([_|_],[_|_]) :-!.
-iterable_pair(L,R) :- string(L),!, \+string_length(L,0), notnull(R),!.
-iterable_pair(L,R) :- string(R),!, \+string_length(R,0), (var(L);L=[_|_]),!.
-
-iterable_head_tail(S, H,T) :-  string(S),!,\+string_length(S,0), (var(H);string(H)), (var(T);string(T)),sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
-iterable_head_tail(S, H,T) :-  string(H), string(T),!, string_concat(H,T,S).
-iterable_head_tail(S, H,T) :-  string(H), \+var(T), T=[],!,S=H.
-iterable_head_tail([H|T],H,T) :-!.
-
-iterable_some(I,O,Lo) :- iterable_head_tail(I,H,T), iterable_any(T,To,Lo), iterable_head_tail(O,H,To).
-iterable_any(I,O,Lo) :- iterable_head_tail(I,H,T),iterable_any(T,To,Lo), iterable_head_tail(O,H,To).
-iterable_any(I,E,I) :- empty(I,E).
-
-iterable_zany(I,E,I) :- empty(I,E).
-iterable_zany(I,O,Lo) :- iterable_head_tail(I,H,T),iterable_zany(T,To,Lo), iterable_head_tail(O,H,To).
-
-iterable_zsome(I,O,Lo) :- iterable_head_tail(I,H,T), iterable_zany(T,To,Lo), iterable_head_tail(O,H,To).
-
-list([]). list([_|_]).
-
-empty([],[]) :-!.
-empty([_|_],[]) :-!.
-empty(S,S0) :- string(S),!,string_to_list(S0,[]). 
-null(X) :- \+var(X) , (X=[]; (string(X), string_length(X,0))),!.
-notnull(X) :- !, (var(X),!; X=[_|_],!; (string(X), \+string_length(X,0))).
-
-
