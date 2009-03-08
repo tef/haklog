@@ -1,7 +1,7 @@
 % strucural unification
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 to_list(S,L) :- string(S), string_to_list(S,L),!.
-to_string(I,S) :- atom(I), string_to_atom(S,I),!.
+expr_to_string(I,S) :- atom(I), string_to_atom(S,I),!.
 
 %unify(_,_,L,R,_) :- writef("\nunify: (%w) (%w)\n",[L,R]), fail.
 
@@ -30,8 +30,8 @@ unify(E,Eo,lambda(Ho,To), lambda(H,T),lambda(Oh,Ot)) :-!,unify(E,E1,H,Ho,Oh), un
 unify(E,Eo,block(X),O,J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,Xo,O,J).
 unify(E,Eo,O,block(X),J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,O,Xo,J).
 unify(E,E,X,X,X) :- !.
-unify(E,E,S,A,S) :- string(S),  to_string(A,S),!.
-unify(E,E,A,S,S) :- string(S),  to_string(A,S),!.
+unify(E,E,S,A,S) :- string(S),  expr_to_string(A,S),!.
+unify(E,E,A,S,S) :- string(S),  expr_to_string(A,S),!.
 
 
 unify_var(E,E,X,Y) :- var(Y),!,X=Y.
@@ -78,8 +78,9 @@ unify_p_l(choice,E,Eo,[L1,L2],Lt,R,R) :- !, (unify(E,E1,L1,R,_) *-> unify(E1,Eo,
 unify_p_l(ahead,E,Eo,L,Lt,[R|Rt],[]) :- !,unify(E,E1,L,R,_), unify(E1,Eo,Lt,[R|Rt],_).
 unify_p_l(ahead,E,Eo,L,Lt,R,R) :- !,unify(E,E1,L,R,_), unify(E1,Eo,Lt,R,_).
 unify_p_l(isnt,E,Eo,L,Lt,R,R) :- !,\+unify(E,_,L,R,_), !,(R=[Rh|Rt], !,\+ unify(E,_,L,Rh,_),!,unify(E,Eo,Lt,[Rh|Rt],_));unify(E,Eo,Lt,R,_).
-unify_p_l(any,E,Eo,[A|At],To,[Rh|Rt],[Rh|Ct]) :- unify(E,E1,A,Rh,_), unify_p_l(any,E1,Eo,At,To,Rt,Ct).
-unify_p_l(any,E,Eo,[],T,To,[]):- !,unify(E,Eo,T,To,_).
+%unify_p_l(any,E,Eo,[A|At],To,[Rh|Rt],[Rh|Ct]) :- unify(E,E1,A,Rh,_), unify_p_l(any,E1,Eo,At,To,Rt,Ct).
+%unify_p_l(any,E,Eo,[],T,To,[]):- !,unify(E,Eo,T,To,_).
+unify_p_l(any,E,Eo,A,To,R,C) :- iterable_pair(A,R),!,iterable_any(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
 unify_p_l(any,E,Eo,A,To,[Rh|Rt],[Rh|Ct]) :- unify(E,E1,A,Rh,_), unify_p_l(any,E1,Eo,A,To,Rt,Ct).
 unify_p_l(any,E,Eo,_,T,To,[]):- unify(E,Eo,T,To,_).
 unify_p_l(zany,E,Eo,[],T,To,[]) :- unify(E,Eo,T,To,_).
@@ -87,13 +88,23 @@ unify_p_l(zany,E,Eo,[A|At],To,[H|T],[H|C]) :- unify(E,E1,A,H,_), unify_p_l(zany,
 unify_p_l(some,E,Eo,[A|At],To,[H|T],[H|C]) :- unify(E,E1,A,H,_), unify_p_l(any,E1,Eo,At,To,T,C).
 unify_p_l(zsome,E,Eo,[A|At],To,[H|T],[H|C]) :- unify(E,E1,A,H,_), unify_p_l(zany,E1,Eo,At,To,T,C).
 %unify_p_l(concat,E,Eo,[L1,L2],To,[H|T],Ho) :- !, unify_var(E,E1,A,L1), unify_var(E1,E2,B,L2), unify_var(E2,E3,Ho,H),concat(A,B,Ho), unify(E3,Eo,To,T,_).
-unify_p_l(maybe,E,Eo,A,T,[H|To],H) :- unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
+unify_p_l(maybe,E,Eo,A,T,R,H) :- iterable_head_tail(R,H,To), unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
 unify_p_l(maybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).
 unify_p_l(zmaybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).
-unify_p_l(zmaybe,E,Eo,A,T,[H|To],H) :- unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
+unify_p_l(zmaybe,E,Eo,A,T,R,H) :- iterable_head_tail(R,H,To), unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
 
-iterable_head([H|_],H) :-!.
-iterable_head(S, H) :- string(S), !, sub_string(S,0,1,H).
+iterable_pair([_|_],[_|_]).
+iterable_pair([],[]).
+
+iterable_head_tail(S, H,T) :-  string(S),!, sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
+iterable_head_tail(S, H,T) :-  string(H),string(T), string_concat(H,T,S).
+iterable_head_tail([H|T],H,T) :-!.
 
 iterable_any([H|T],[H|To],Lo) :- iterable_any(T,To,Lo).
 iterable_any(I,[],I).
+
+iterable_zany(I,[],I).
+iterable_zany([H|T],[H|To],Lo) :- iterable_zany(T,To,Lo).
+
+
+
