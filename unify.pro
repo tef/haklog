@@ -14,7 +14,7 @@ unify(_,_,[H|_],[],_) :- var(H) , !, fail.
 
 unify(E,Eo,L,[p(P,A)|Rt],L) :-  var(L), !, unify_var_p_l(P,E,Eo,A,Rt,L).
 unify(E,Eo,[p(P,A)|Lt],R,R) :-  var(R), !, unify_var_p_l(P,E,Eo,A,Lt,R). 
-unify(E,Eo,L,R,O) :- iterable_pair(L,R), iterable_head_tail(L,Lh,Lt), iterable_head_tail(R,Rh,Rt),( (var(Lh),!,unify_var(E,E1,Lh,Rh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Lh,Ot)); (var(Rh),!,unify_var(E,E1,Rh,L), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Rh,Ot))).
+unify(E,Eo,L,R,O) :- iterable_pair(L,R), iterable_head_tail(L,Lh,Lt), iterable_head_tail(R,Rh,Rt),( (var(Lh),!,unify_var(E,E1,Lh,Rh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Lh,Ot)); (var(Rh),!,unify_var(E,E1,Rh,Lh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Rh,Ot))).
 
 unify(E,Eo,[p(P,A)|Lt],Ro,O) :-  !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,O).
 unify(E,Eo,Lo,[p(P,A)|Rt],O) :-  !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,O).
