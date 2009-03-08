@@ -1,4 +1,6 @@
 % strucural unification
+join(A,[],A) :- !.
+join(A,B,C) :- string(A), string(B), !, string_concat(A,B,C).
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 to_list(S,L) :- string(S), string_to_list(S,L),!.
 expr_to_string(I,S) :- atom(I), string_to_atom(S,I),!.
@@ -12,8 +14,8 @@ unify(E,E,[],[],[]) :- !.
 unify(_,_,[],[H|_],_) :- var(H) , !, fail.
 unify(_,_,[H|_],[],_) :- var(H) , !, fail.
 
-unify(E,Eo,L,[p(P,A)|Rt],L) :-  var(L), !, unify_var_p_l(P,E,Eo,A,Rt,L).
-unify(E,Eo,[p(P,A)|Lt],R,R) :-  var(R), !, unify_var_p_l(P,E,Eo,A,Lt,R). 
+unify(E,Eo,L,R,L) :- iterable_head_tail(R,p(P,A),Rt), var(L), !, unify_var_p_l(P,E,Eo,A,Rt,L).
+unify(E,Eo,L,R,R) :- iterable_head_tail(L,p(P,A),Lt),  var(R), !, unify_var_p_l(P,E,Eo,A,Lt,R). 
 unify(E,Eo,L,R,O) :- iterable_pair(L,R), iterable_head_tail(L,Lh,Lt), iterable_head_tail(R,Rh,Rt),( (var(Lh),!,unify_var(E,E1,Lh,Rh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Lh,Ot)); (var(Rh),!,unify_var(E,E1,Rh,Lh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Rh,Ot))).
 
 unify(E,Eo,[p(P,A)|Lt],Ro,R) :-  !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
@@ -35,7 +37,7 @@ unify_var(E,E,X,Y) :- var(Y),!,X=Y.
 unify_var(E,Eo,[H|To],[H|T]) :-  var(H),!, unify_var(E,Eo,To,T).
 unify_var(E,E,[],[]) :-!.
 unify_var(E,Eo,O,p(P,A)) :- !, var(A) *-> unify_var_p(P,E,Eo,A,O); (unify_var_p(P,E,Eo,A,O),!).
-unify_var(E,Eo,O,[p(P,A)|T]) :- !, var(A) *-> (unify_var_p_l(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T)); (unify_var_p_l(P,E,E1,A,[],Ho), join(Ho,To,O), unify_var(E1,Eo,To,T),!).
+unify_var(E,Eo,O,[p(P,A)|T]) :- !, var(A) *-> (unify_var_p_l(P,E,E1,A,[],Ho),  unify_var(E1,Eo,To,T), join(Ho,To,O)); (unify_var_p_l(P,E,E1,A,[],Ho), unify_var(E1,Eo,To,T), join(Ho,To,O),!).
 
 unify_var(E,Eo,[Ho|To],[H|T]) :- !,unify_var(E,E1,Ho,H), unify_var(E1,Eo,To,T).
 unify_var(E,E,call(def,T), call(def,T)) :-!.
@@ -96,7 +98,7 @@ iterable_pair([_|_],[_|_]) :-!.
 iterable_pair(L,R) :- string(L),!, \+string_length(L,0), notnull(R),!.
 iterable_pair(L,R) :- string(R),!, \+string_length(R,0), (var(L);L=[_|_]),!.
 
-iterable_head_tail(S, H,T) :-  string(S),!,\+string_length(S,0), sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
+iterable_head_tail(S, H,T) :-  string(S),!,\+string_length(S,0), (var(H);string(H)), (var(T);string(T)),sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
 iterable_head_tail(S, H,T) :-  string(H), string(T),!, string_concat(H,T,S).
 iterable_head_tail([H|T],H,T) :-!.
 
