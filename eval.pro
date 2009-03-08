@@ -140,8 +140,6 @@ bind_variable(E,E,'_env',E):- !.
 bind_variable(E,E,K,V) :- defined(E,K,V),!.
 bind_variable(E,[K-V|E],K,V):- !.
 
-
-
 % builtin functions
 :- discontiguous builtin/1, apply/3.
 builtin(add). apply(add,[X,Y],O) :- O is X+Y,!.
