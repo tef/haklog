@@ -90,7 +90,7 @@ build(zmaybe,R,p(zmaybe,R)) --> !.
 build(ahead,R,p(ahead,R)) --> !.
 build(isnt,R,p(isnt,R)) --> !.
 build(C,R,call(C,R)) --> !.
-build(concat,L,R,p(concat,[L,R])) --> !.
+build(concat,L,R,[p(any,L), p(any,R)]) --> !.
 build(cons,L,R,[L|R]) --> !. 
 build(pair,L,R,[L,R]) --> !.
 build(bind,L,R,p(bind,[L,R])) --> !.
@@ -108,7 +108,7 @@ infix(lt,right,60) --> "<".
 infix(cons,right,55) --> ",".
 infix(bind,left,75) --> ":".
 infix(where,left,97) --> "where".
-infix(concat,left,50) --> "++".
+infix(concat,right,50) --> "++".
 infix(add,right,50) --> "+".
 infix(sub,right,50) --> "-".
 infix(mul,right,45) --> "*".
