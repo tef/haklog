@@ -50,6 +50,19 @@ exprl(T,N) --> comment, ws, !, exprl(T,N).
 exprl(T,N) -->  ws0,!, exprl(T,N).
 exprl([],_) --> [].
 
+regex([H|T],N) --> rx(H,N),ws,!, regex(T,N).
+regex([],_) --> [].
+
+rx(_,_) --> "/",!,{fail}.
+rx(O,N1) --> "(" ,!, ws,  rx(Op, 100), ws, ")" , rxfollow(Op, O ,N1).
+rx(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , rxfollow(block(Op), O ,N1).
+rx(O,N1) --> prefix(Op, N), regexop(Op), !, { N =< N1 }, ws, rx(R,N), !, rxbuild(Op,R,Z), rxfollow(Z, O, N1).
+rx(E,N) --> [A], rxfollow(A, E, N).
+
+rxfollow(L,O,N1) --> ((postfix(Op,N), regexop(Op)) -> {N =< N1}), !, rxbuild(Op,L,Z), rxfollow(Z, O, N1).
+rxfollow(L,O,N1) --> ws, ((infix(Op,As,N),regexop(Op)) -> {assoc(As,N, N1)}), !,ws, rx(R,N),!, rxbuild(Op,L,R,Z), rxfollow(Z, O, N1).
+rxfollow(L,O,_) --> !.
+
 %helpers
 exprl(L) --> ws,exprl(L, 100).
 expr(L) --> ws,exprn(L,100).
@@ -59,6 +72,7 @@ block(block(L)) --> ws, block(L,100).
 exprn(O,N1) --> "(" ,!, ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
 exprn(O,N1) --> "[" ,!, ws,  block(Op, 90), ws, "]" , follow(Op, O ,N1).
 exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow(block(Op), O ,N1).
+exprn(O,N1) --> "~/" ,!, ws, regex(R,100), ws, "/" , follow(R, O ,N1).
 exprn(O,N1) --> prefix(Op, N),!, { N =< N1 }, ws, exprn(R,N), !, build(Op,R,Z), follow(Z, O, N1).
 exprn(O,N1) --> \+ infix(_,_,_), %\+ postfix(_,_),
                 identifier(X), !, idfollow(O,X,N1). 
@@ -81,6 +95,9 @@ follow(O,O,_) --> !.
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
 
+rxbuild(P,R,L) --> build(P,R,L).
+rxbuild(bind,L,R,p(bind,[L,id(R)])) --> !.
+rxbuild(P,R,L,O) --> build(P,R,L,O).
 build(any,R,p(any,R)) --> !.
 build(some,R,p(some,R)) --> !.
 build(maybe,R,p(maybe,R)) --> !.
@@ -97,6 +114,17 @@ build(bind,L,R,p(bind,[L,R])) --> !.
 build(choice,L,R,p(choice,[L,R])) --> !.
 build(C,L,R,call(C,[L,R])) --> !.
 
+regexop(isnt) -->!.
+regexop(ahead) -->!.
+regexop(some) -->!.
+regexop(zsome) -->!.
+regexop(maybe) -->!.
+regexop(zmaybe) -->!.
+regexop(any) -->!.
+regexop(zany) -->!.
+regexop(bind) -->!.
+regexop(choice) -->!.
+
 infix(def, right, 99) --> ":-".
 infix(ifthen,left,85) --> "->".
 infix(le, right,60) --> ">=".
@@ -108,7 +136,7 @@ infix(lt,right,60) --> "<".
 infix(cons,right,55) --> ",".
 infix(bind,left,75) --> ":".
 infix(where,left,97) --> "where".
-infix(concat,right,50) --> "++".
+infix(concat,right,57) --> "++".
 infix(add,right,50) --> "+".
 infix(sub,right,50) --> "-".
 infix(mul,right,45) --> "*".
@@ -116,7 +144,7 @@ infix(div,right,45) --> "/".
 infix(conj,right,95) --> "&&". 
 infix(and,right,95) --> "and".
 infix(disj,right,96) --> "||".
-infix(choice,right,75) --> "|".
+infix(choice,right,56) --> "|".
 infix(or,right,96) --> "or".
 infix(xor,right,96) --> "xor".
 infix(in,right,60) --> "in".

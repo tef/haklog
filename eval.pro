@@ -69,7 +69,7 @@ eval(E,Eo,call(H,T),O) :-  \+ var(H),
     (!,eval(E,E1,H,Ho),\+H=Ho,eval(E1,Eo,call(Ho,T),O)).
 
 eval(E,Eo,[H|T],[H|To]) :- var(H),!,eval(E,Eo,T,To).
-eval(Ei,Eo,[p(P,A)|Lt],O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var(E1,E2,Po,p(P,A1)),join(Po,T,O), eval(E2,Eo,Lt,T).
+eval(Ei,Eo,[p(P,A)|Lt],O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var(E1,E2,Po,p(P,A1)), eval(E2,Eo,Lt,T),join(Po,T,O).
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
 eval(E,E,X,X) :- atomic(X),!.
 eval(E,E,X,X) :- string(X),!.
