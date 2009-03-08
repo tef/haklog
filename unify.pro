@@ -2,6 +2,7 @@
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 to_list(S,L) :- string(S), string_to_list(S,L),!.
 expr_to_string(I,S) :- atom(I), string_to_atom(S,I),!.
+expr_to_string([],S) :- string_length(S,0).
 
 %unify(_,_,L,R,_) :- writef("\nunify: (%w) (%w)\n",[L,R]), fail.
 
@@ -11,25 +12,20 @@ unify(E,E,[],[],[]) :- !.
 unify(_,_,[],[H|_],_) :- var(H) , !, fail.
 unify(_,_,[H|_],[],_) :- var(H) , !, fail.
 
-unify(E,Eo,S,V,S) :- var(V),!,unify_var(E,Eo,V,S,_).
-unify(E,Eo,V,S,S) :- var(V),!,unify_var(E,Eo,V,S,_).
-unify(E,Eo,S,[H|T],S) :- to_list(S,L),!, unify(E,Eo,L,[H|T],_).
-unify(E,Eo,[H|T],S,S) :- to_list(S,L),!, unify(E,Eo,L,[H|T],_).
 unify(E,Eo,L,[p(P,A)|Rt],L) :-  var(L), !, unify_var_p_l(P,E,Eo,A,Rt,L).
-unify(E,Eo,[p(P,A)|Lt],R,R) :-  var(R), !, unify_var_p_l(P,E,Eo,A,Lt,R).
-unify(E,Eo,[L|Lt],[R|Rt],[L|O]) :-  var(L), !,unify_var(E,E1,L,R), unify(E1,Eo,Lt,Rt,O). 
-unify(E,Eo,[L|Lt],[R|Rt],[R|O]) :-  var(R), !,unify_var(E,E1,R,L), unify(E1,Eo,Lt,Rt,O). 
+unify(E,Eo,[p(P,A)|Lt],R,R) :-  var(R), !, unify_var_p_l(P,E,Eo,A,Lt,R). 
+unify(E,Eo,L,R,O) :- iterable_pair(L,R), iterable_head_tail(L,Lh,Lt), iterable_head_tail(R,Rh,Rt),( (var(Lh),!,unify_var(E,E1,Lh,Rh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Lh,Ot)); (var(Rh),!,unify_var(E,E1,Rh,L), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Rh,Ot))).
+
 unify(E,Eo,[p(P,A)|Lt],Ro,O) :-  !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,O).
 unify(E,Eo,Lo,[p(P,A)|Rt],O) :-  !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,O).
 unify(E,Eo,p(P,A),Ro,O) :-  !, unify_var(E,E1,R,Ro), unify_p(P,E1,Eo,A,R,O).
 unify(E,Eo,Lo,p(P,A),O) :-  !, unify_var(E,E1,L,Lo), unify_p(P,E1,Eo,A,L,O).
 
-unify(E,Eo,[Ho|To], [H|T],[Oh|Ot]) :-!,unify(E,E1,Ho,H,Oh),unify(E1,Eo,To,T,Ot).
+unify(E,Eo,L,R,O) :- iterable_pair(L,R), !, iterable_head_tail(L,Ho,To), iterable_head_tail(R,H,T),!, unify(E,E1,Ho,H,Oh),unify(E1,Eo,To,T,Ot), iterable_head_tail(O,Oh,Ot).
 unify(E,Eo,call(Ho,To), call(H,T),call(Oh,Ot)) :-!,unify(E,E1,Ho,H,Oh),unify(E1,Eo,To,T,Ot).
 unify(E,Eo,lambda(Ho,To), lambda(H,T),lambda(Oh,Ot)) :-!,unify(E,E1,H,Ho,Oh), unify(E1,Eo,T,To,Ot).
 unify(E,Eo,block(X),O,J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,Xo,O,J).
 unify(E,Eo,O,block(X),J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,O,Xo,J).
-unify(E,E,X,X,X) :- !.
 unify(E,E,S,A,S) :- string(S),  expr_to_string(A,S),!.
 unify(E,E,A,S,S) :- string(S),  expr_to_string(A,S),!.
 
@@ -94,19 +90,28 @@ unify_p_l(maybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).
 unify_p_l(zmaybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).
 unify_p_l(zmaybe,E,Eo,A,T,R,H) :- iterable_head_tail(R,H,To), unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
 
-iterable_pair([_|_],[_|_]).
-iterable_pair([],[]).
+iterable_pair([_|_],[_|_]) :-!.
+iterable_pair(L,R) :- string(L),!, \+string_length(L,0), notnull(R),!.
+iterable_pair(L,R) :- string(R),!, \+string_length(R,0), (var(L);L=[_|_]),!.
 
-iterable_head_tail(S, H,T) :-  string(S),!, sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
-iterable_head_tail(S, H,T) :-  string(H),string(T), string_concat(H,T,S).
+iterable_head_tail(S, H,T) :-  string(S),!,\+string_length(S,0), sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
+iterable_head_tail(S, H,T) :-  string(H), string(T),!, string_concat(H,T,S).
 iterable_head_tail([H|T],H,T) :-!.
 
-iterable_some([H|T],[H|To],Lo) :- iterable_any(T,To,Lo).
-iterable_any([H|T],[H|To],Lo) :- iterable_any(T,To,Lo).
-iterable_any(I,[],I).
+iterable_some(I,O,Lo) :- iterable_head_tail(I,H,T), iterable_any(T,To,Lo), iterable_head_tail(O,H,To).
+iterable_any(I,O,Lo) :- iterable_head_tail(I,H,T),iterable_any(T,To,Lo), iterable_head_tail(O,H,To).
+iterable_any(I,E,I) :- empty(I,E).
 
-iterable_zany(I,[],I).
-iterable_zany([H|T],[H|To],Lo) :- iterable_zany(T,To,Lo).
+iterable_zany(I,E,I) :- empty(I,E).
+iterable_zany(I,O,Lo) :- iterable_head_tail(I,H,T),iterable_zany(T,To,Lo), iterable_head_tail(O,H,To).
 
-iterable_zsome([H|T],[H|To],Lo) :- iterable_zany(T,To,Lo).
+iterable_zsome(I,O,Lo) :- iterable_head_tail(I,H,T), iterable_zany(T,To,Lo), iterable_head_tail(O,H,To).
+
+list([]). list([_|_]).
+
+empty([],[]) :-!.
+empty([_|_],[]) :-!.
+empty(S,S0) :- string(S),!,string_to_list(S0,[]). 
+notnull(X) :- !, (var(X),!; X=[_|_],!; (string(X), \+string_length(X,0))).
+
 
