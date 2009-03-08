@@ -14,7 +14,7 @@ to_string(A,S) :- !,atom(A), string_to_atom(A,S).
 
 
 spawn(E,C,pid(Id)) :- thread_create(eval(E,[],C,_), Id, []).
-send(pid(Id),M) :- thread_send_message(Id,[pid(Id)|M]),!.
+send(pid(Id),M) :- bound(M),thread_send_message(Id,[pid(Id)|M]),!.
 recv(M) :- thread_get_message(M),!.
 
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.

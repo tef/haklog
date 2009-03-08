@@ -53,10 +53,15 @@ exprl(T,N) --> comment, ws, !, exprl(T,N).
 exprl(T,N) -->  ws0,!, exprl(T,N).
 exprl([],_) --> [].
 
-regex([H|T],N) --> rx(H,N),ws,!, regex(T,N).
-regex([],_) --> [].
+regex(T,N) --> "^",ws,!,rx_list(T,N).
+regex([p(zany,id('_'))|T],N) --> ws,rx_list(T,N),!.
+regex([],_) --> ws.
 
-rx(_,_) --> ("/";")";"]"),!,{fail}.
+rx_list([H|T],N) --> rx(H,N),ws,!, rx_list(T,N).
+rx_list([],_) -->  ws, "$",!.
+rx_list([p(any,_)],_) --> ws.
+
+rx(_,_) --> ("/";")";"]";"$"),!,{fail}.
 rx(O,N1) --> "(" ,!, ws,  rx(Op, 100), ws, ")" , rxfollow(Op, O ,N1).
 rx(O,N1) --> "[" ,!, ws,  regex(Op, 100), ws, "]", rxbuild(choice,Op,Z), rxfollow(Z, O ,N1).
 rx(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , rxfollow(block(Op), O ,N1).
@@ -80,7 +85,7 @@ block(block(L)) --> ws, block(L,100).
 exprn(O,N1) --> "(" ,!, ws,  block(Op, 100), ws, ")" , follow(Op, O ,N1).
 exprn(O,N1) --> "[" ,!, ws,  block(Op, 90), ws, "]" , follow(Op, O ,N1).
 exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow(block(Op), O ,N1).
-exprn(O,N1) --> "~/" ,!, ws, regex(R,100), ws, "/" , follow(R, O ,N1).
+exprn(O,N1) --> "~/" ,!, regex(R,100), "/" , follow(R, O ,N1).
 exprn(O,N1) --> prefix(Op, N),!, { N =< N1 }, ws, exprn(R,N), !, build(Op,R,Z), follow(Z, O, N1).
 exprn(O,N1) --> \+ infix(_,_,_), %\+ postfix(_,_),
                 identifier(X), !, idfollow(O,X,N1). 
@@ -102,7 +107,7 @@ follow(O,O,_) --> !.
 
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
-rxbuild(dot,_) --> !.
+rxbuild(dot,id('_')) --> !.
 rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
 rxbuild(N,p(N,[])) --> !.
 rxbuild(choice,X,p(choice,X)) --> !.
