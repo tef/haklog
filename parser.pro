@@ -83,8 +83,7 @@ rx(O,N1) --> "\\",!, rxescapes(C), rxfollow(C,O,N1).
 rx(O,N1) --> [L], {string_to_atom([L],A)}, rxfollow(A, O, N1).
 
 rxescapes(O) --> "n",!,rxbuild(nl,O).
-rxescapes(O) --> "w",!,rxbuild(class,'w',O).
-rxescapes(O) --> "W",!,rxbuild(class,'w',Z), rxbuild(isnt,Z,O).
+rxescapes(O) --> [X], {member(X,"wWsS"), string_to_atom([X],A)},!,rxbuild(class,A,O).
 
 
 
