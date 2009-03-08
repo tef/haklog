@@ -56,8 +56,9 @@ exprl([],_) --> [].
 regex([H|T],N) --> rx(H,N),ws,!, regex(T,N).
 regex([],_) --> [].
 
-rx(_,_) --> "/",!,{fail}.
+rx(_,_) --> ("/";")";"]"),!,{fail}.
 rx(O,N1) --> "(" ,!, ws,  rx(Op, 100), ws, ")" , rxfollow(Op, O ,N1).
+rx(O,N1) --> "[" ,!, ws,  regex(Op, 100), ws, "]", rxbuild(choice,Op,Z), rxfollow(Z, O ,N1).
 rx(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , rxfollow(block(Op), O ,N1).
 rx(O,N1) --> prefix(Op, N), regexop(Op), !, { N =< N1 }, ws, rx(R,N), !, rxbuild(Op,R,Z), rxfollow(Z, O, N1).
 rx(O,N1) --> ".",!, rxbuild(dot,C),rxfollow(C,O,N1).
@@ -104,6 +105,7 @@ assoc(left, A, B) :- A < B.
 rxbuild(dot,_) --> !.
 rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
 rxbuild(N,p(N,[])) --> !.
+rxbuild(choice,X,p(choice,X)) --> !.
 rxbuild(P,R,L) --> build(P,R,L).
 rxbuild(bind,L,R,p(bind,[L,id(R)])) --> !.
 rxbuild(P,R,L,O) --> build(P,R,L,O).
