@@ -64,6 +64,8 @@ unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- iterable_head_tail(R,Rh,Rt), !, unify(E,E
 
 unify_p_l(choice,E,Eo,[L1|L2],Lt,R,O) :- iterable_head_tail(R,Rh,Rt),!, ((unify(E,E1,L1,Rh,O),unify(E1,Eo,Lt,Rt,_)); (unify_p_l(choice,E,Eo,L2,Lt,R,O))).
 
+unify_p_l(class,E,Eo,L,Lt,R,Rh) :- iterable_head_tail(R,Rh,_),!,class_match(L,Rh), unify(E,Eo,Lt,R,_).
+
 unify_p_l(ahead,E,Eo,L,Lt,R,O) :- iterable_head_tail(R,Rh,_),!,unify(E,E1,L,Rh,O), unify(E1,Eo,Lt,R,_).
 
 unify_p_l(isnt,E,Eo,L,Lt,R,Rh) :- iterable_head_tail(R,Rh,_), !,\+ unify(E,_,L,Rh,_),!,unify(E,Eo,Lt,R,_).

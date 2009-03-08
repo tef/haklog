@@ -18,6 +18,8 @@ chars(O) --> "\\",!, escapes(O).
 chars([H|T]) --> [H], chars(T).
 
 escapes(O) --> "\"", append("\"",T,O),chars(T).
+escapes(O) --> "n", append("\n",T,O),chars(T).
+escapes(O) --> "t", append("\t",T,O),chars(T).
 escapes(O) --> nl, chars(O).
 
 ws0 --> [X], {code_type(X, white)}, ws.
@@ -71,6 +73,10 @@ rx(O,N1) --> "\\",!, rxescapes(C), rxfollow(C,O,N1).
 rx(O,N1) --> [L], {string_to_atom([L],A)}, rxfollow(A, O, N1).
 
 rxescapes(O) --> "n",!,rxbuild(nl,O).
+rxescapes(O) --> "w",!,rxbuild(class,'w',O).
+rxescapes(O) --> "W",!,rxbuild(class,'w',Z), rxbuild(isnt,Z,O).
+
+
 
 rxfollow(L,O,N1) --> ((postfix(Op,N), regexop(Op)) -> {N =< N1}), !, rxbuild(Op,L,Z), rxfollow(Z, O, N1).
 rxfollow(L,O,N1) --> ws, ((infix(Op,As,N),regexop(Op)) -> {assoc(As,N, N1)}), !,ws, rx(R,N),!, rxbuild(Op,L,R,Z), rxfollow(Z, O, N1).
@@ -111,6 +117,7 @@ rxbuild(dot,id('_')) --> !.
 rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
 rxbuild(N,p(N,[])) --> !.
 rxbuild(choice,X,p(choice,X)) --> !.
+rxbuild(class,X,p(class,X)) --> !.
 rxbuild(P,R,L) --> build(P,R,L).
 rxbuild(bind,L,R,p(bind,[L,id(R)])) --> !.
 rxbuild(P,R,L,O) --> build(P,R,L,O).

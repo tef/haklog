@@ -41,3 +41,6 @@ concat(A,p(concat,[B1,B2]),O) :- !, string_concat(A,B,O), concat(B1,B2,B).
 to_string(A,A) :- !,string(A).
 to_string(A,S) :- !,atom(A), string_to_atom(A,S).
 
+class_match(X,S) :- string(S), string_to_list(S,L), !, class_match(X,L).
+class_match(X,S) :- atom(S), atom_codes(S,L), !, class_match(X,L).
+class_match(w,S) :- code_type(S,csym).
