@@ -3,8 +3,9 @@ join(A,[],A) :- !.
 join(A,B,C) :- string(A), string(B), !, string_concat(A,B,C).
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 to_list(S,L) :- string(S), string_to_list(S,L),!.
+expr_to_string(S,S) :- string(S),!.
+expr_to_string(V,S) :- \+var(V), V = [], string_to_list(S,[]).
 expr_to_string(I,S) :- atom(I), string_to_atom(S,I),!.
-expr_to_string([],S) :- string_length(S,0).
 
 %unify(_,_,L,R,_) :- writef("\nunify: (%w) (%w)\n",[L,R]), fail.
 
@@ -29,9 +30,8 @@ unify(E,Eo,lambda(Ho,To), lambda(H,T),lambda(Oh,Ot)) :-!,unify(E,E1,H,Ho,Oh), un
 unify(E,Eo,block(X),O,J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,Xo,O,J).
 unify(E,Eo,O,block(X),J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,O,Xo,J).
 unify(E,E,X,X,X) :- !.
-unify(E,E,S,A,S) :- string(S),  expr_to_string(A,S),!.
-unify(E,E,A,S,S) :- string(S),  expr_to_string(A,S),!.
-
+unify(E,E,S,A,S) :- string(S),!, expr_to_string(A,S1),!, S1=S.
+unify(E,E,A,S,S) :- string(S),!, expr_to_string(A,S1),!, S1=S.
 
 unify_var(E,E,X,Y) :- var(Y),!,X=Y.
 unify_var(E,Eo,[H|To],[H|T]) :-  var(H),!, unify_var(E,Eo,To,T).
