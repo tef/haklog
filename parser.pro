@@ -69,7 +69,7 @@ rx_list([p(any,_)],_) --> ws.
 rx_class(_) --> ("/";")";"]";"$"),!,{fail}.
 rx_class(O) --> "(" ,!, ws,  rx(O, 100), ws, ")" .
 rx_class(O) --> "\\",!, rxescapes(O).
-rx_class(O) --> csym(A), "-", csym(B),!, {string_to_atom([L1],A), string_to_atom([L2],B)}, rxbuild(range,L1,L2,O).
+rx_class(O) --> csym(A), "-", csym(B),!, rxbuild(crange,A,B,O).
 rx_class(O) --> [L], {string_to_atom([L],O)}.
 
 rx(_,_) --> ("/";")";"]";"$"),!,{fail}.
@@ -128,9 +128,9 @@ rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
 rxbuild(N,p(N,[])) --> !.
 rxbuild(choice,X,p(choice,X)) --> !.
 rxbuild(class,X,p(class,X)) --> !.
-rxbuild(crange,X,p(crange,X)) --> !.
 rxbuild(P,R,L) --> build(P,R,L).
 rxbuild(bind,L,R,p(bind,[L,id(R)])) --> !.
+rxbuild(crange,L,R,p(crange,[L,R])) --> !.
 rxbuild(P,R,L,O) --> build(P,R,L,O).
 build(any,R,p(any,R)) --> !.
 build(some,R,p(some,R)) --> !.
