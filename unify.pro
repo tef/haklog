@@ -65,7 +65,7 @@ unify_var_p_l(zsome,E,Eo,L,Lt,R) :-   !,unify_var(E,E1,R,L), unify(E1,Eo,Lt,[],_
 unify_var_p_l(zmaybe,E,Eo,L,Lt,[R|Rt]) :-  !,(unify(E,Eo,Lt,[R|Rt],_); (unify_var(E,E1,R,L), unify(E1,Eo,Lt,Rt,_))). 
 
 unify_p(bind,E,Eo,[L1,L2],R,O) :-  !, unify(E,E1,L1,R,O),unify_var(E1,Eo,L2,O,_).
-unify_p(choice,E,Eo,[L1,L2],R,C) :- unify(E,Eo,L1,R,C) ; unify(E,Eo,L2,R,C).
+unify_p(choice,E,Eo,[L1,L2],R,C) :- !, (unify(E,Eo,L1,R,C) ; unify(E,Eo,L2,R,C)).
 
 unify_p_l(bind,E,Eo,[p(P,A),N],Lt,R,C):-  !,unify_p_l(P,E,E1,A,Lt,R,C),unify(E1,Eo,N,C,_).
 unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- iterable_head_tail(R,Rh,Rt), !, unify(E,E1,L1,Rh,O),unify(E1,E2,Lt,Rt,_),unify_var(E2,Eo,L2,O,_).
@@ -77,7 +77,8 @@ unify_p_l(ahead,E,Eo,L,Lt,R,O) :- iterable_head_tail(R,Rh,_),!,unify(E,E1,L,Rh,O
 unify_p_l(isnt,E,Eo,L,Lt,R,Rh) :- iterable_head_tail(R,Rh,_), !,\+ unify(E,_,L,Rh,_),!,unify(E,Eo,Lt,R,_).
 
 unify_p_l(any,E,Eo,A,To,R,C) :- (var(A); iterable_pair(A,R)),!,iterable_any(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
-unify_p_l(any,E,Eo,A,To,R,C) :- null(R),!, unify(E,E1,A,R,C), unify(E1,Eo,To,R,_).
+unify_p_l(any,E,Eo,A,To,R,C) :- list(A), null(R),!, unify(E,E1,A,R,C), unify(E1,Eo,To,R,_).
+unify_p_l(any,E,Eo,_,To,R,R) :- null(R),!, unify(E,Eo,To,R,_).
 unify_p_l(any,E,Eo,A,To,R,C) :- (iterable_head_tail(R,Rh,Rt), unify(E,E1,A,Rh,Ch), unify_p_l(any,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct)) ; (C = [],unify(E,Eo,To,R,_)).
 
 unify_p_l(zany,E,Eo,A,To,R,C) :- (var(A); iterable_pair(A,R)),!,iterable_zany(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
@@ -100,6 +101,7 @@ iterable_pair(L,R) :- string(R),!, \+string_length(R,0), (var(L);L=[_|_]),!.
 
 iterable_head_tail(S, H,T) :-  string(S),!,\+string_length(S,0), (var(H);string(H)), (var(T);string(T)),sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
 iterable_head_tail(S, H,T) :-  string(H), string(T),!, string_concat(H,T,S).
+iterable_head_tail(S, H,T) :-  string(H), \+var(T), T=[],!,S=H.
 iterable_head_tail([H|T],H,T) :-!.
 
 iterable_some(I,O,Lo) :- iterable_head_tail(I,H,T), iterable_any(T,To,Lo), iterable_head_tail(O,H,To).

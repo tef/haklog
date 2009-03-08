@@ -57,11 +57,11 @@ rx(_,_) --> "/",!,{fail}.
 rx(O,N1) --> "(" ,!, ws,  rx(Op, 100), ws, ")" , rxfollow(Op, O ,N1).
 rx(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , rxfollow(block(Op), O ,N1).
 rx(O,N1) --> prefix(Op, N), regexop(Op), !, { N =< N1 }, ws, rx(R,N), !, rxbuild(Op,R,Z), rxfollow(Z, O, N1).
-rx(E,N) --> [A], rxfollow(A, E, N).
+rx(E,N) --> [L], {string_to_atom([L],A)}, rxfollow(A, E, N).
 
 rxfollow(L,O,N1) --> ((postfix(Op,N), regexop(Op)) -> {N =< N1}), !, rxbuild(Op,L,Z), rxfollow(Z, O, N1).
 rxfollow(L,O,N1) --> ws, ((infix(Op,As,N),regexop(Op)) -> {assoc(As,N, N1)}), !,ws, rx(R,N),!, rxbuild(Op,L,R,Z), rxfollow(Z, O, N1).
-rxfollow(L,O,_) --> !.
+rxfollow(O,O,_) --> !.
 
 %helpers
 exprl(L) --> ws,exprl(L, 100).
