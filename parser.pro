@@ -14,8 +14,11 @@ csym(C) --> [C], {code_type(C, csymf)}.
 
 string(A) --> "\"", chars(S), {string_to_list(A,S)},!.
 chars([]) --> "\"".
-chars(["\""|T]) --> "\\\"", chars(T).
+chars(O) --> "\\",!, escapes(O). 
 chars([H|T]) --> [H], chars(T).
+
+escapes(O) --> "\"", append("\"",T,O),chars(T).
+escapes(O) --> nl, chars(O).
 
 ws0 --> [X], {code_type(X, white)}, ws.
 ws --> ws0.
@@ -57,7 +60,11 @@ rx(_,_) --> "/",!,{fail}.
 rx(O,N1) --> "(" ,!, ws,  rx(Op, 100), ws, ")" , rxfollow(Op, O ,N1).
 rx(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , rxfollow(block(Op), O ,N1).
 rx(O,N1) --> prefix(Op, N), regexop(Op), !, { N =< N1 }, ws, rx(R,N), !, rxbuild(Op,R,Z), rxfollow(Z, O, N1).
-rx(E,N) --> [L], {string_to_atom([L],A)}, rxfollow(A, E, N).
+rx(O,N1) --> ".",!, rxbuild(dot,C),rxfollow(C,O,N1).
+rx(O,N1) --> "\\",!, rxescapes(C), rxfollow(C,O,N1).
+rx(O,N1) --> [L], {string_to_atom([L],A)}, rxfollow(A, O, N1).
+
+rxescapes(O) --> "n",!,rxbuild(nl,O).
 
 rxfollow(L,O,N1) --> ((postfix(Op,N), regexop(Op)) -> {N =< N1}), !, rxbuild(Op,L,Z), rxfollow(Z, O, N1).
 rxfollow(L,O,N1) --> ws, ((infix(Op,As,N),regexop(Op)) -> {assoc(As,N, N1)}), !,ws, rx(R,N),!, rxbuild(Op,L,R,Z), rxfollow(Z, O, N1).
@@ -69,7 +76,7 @@ expr(L) --> ws,exprn(L,100).
 block(block(L)) --> ws, block(L,100).
 
 %expressions
-exprn(O,N1) --> "(" ,!, ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
+exprn(O,N1) --> "(" ,!, ws,  block(Op, 100), ws, ")" , follow(Op, O ,N1).
 exprn(O,N1) --> "[" ,!, ws,  block(Op, 90), ws, "]" , follow(Op, O ,N1).
 exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow(block(Op), O ,N1).
 exprn(O,N1) --> "~/" ,!, ws, regex(R,100), ws, "/" , follow(R, O ,N1).
@@ -94,7 +101,9 @@ follow(O,O,_) --> !.
 
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
-
+rxbuild(dot,_) --> !.
+rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
+rxbuild(N,p(N,[])) --> !.
 rxbuild(P,R,L) --> build(P,R,L).
 rxbuild(bind,L,R,p(bind,[L,id(R)])) --> !.
 rxbuild(P,R,L,O) --> build(P,R,L,O).
