@@ -9,21 +9,23 @@ done:
     maybe, $ call syntax
     make unify return value, avoid pattern in value
     partial pretty printer 
-
+    strings are lists
+    patterns in strings
+    regex character classes and ranges
+    ++ is append
+    
 bugs:
-    iron out bugs in unification 
-
+    iron out bugs in unification with patterns
+    isn't should match with empty list
 
 housekeeping:
     pretty printer
+    repl
+    standard library for lists/functions
+    prelude ?
 
 data structures:
-    string handling: pattern matching over strings, variable capture, dcg akin?
-    strings, "foo" , string patterns
     string operations ? more sugar ? 
-     x = /\w+ \d+/
-    icon combinatorics? ++ backtracking append
-    
     mutable variables
     meta-types? classes/objects? alternatively meta lists - things with list semantics + others
 
@@ -59,36 +61,20 @@ prefix:
 & ahead positive lookahead
 
 message passing/processes:
+    send X blah blah blah
+    recv x 1 -> 2 3 ->4
+    spawn
 
-send X blah blah blah
+strings:
+    string replacement ?
+    uses prolog native strings.
+    need to turn concat into a stream operator
+    alternatively: treat append like cons, strings like lists
 
-recv x 1 -> 2 3 ->4
+    "foo ${} $a"
+    """ fooo foo
+    foo foo"
 
-spawn
+    regexes?
+    /foo bar /
 
-
-
-string ideas:
-
-use prolog native strings.
-
-need to turn concat into a stream operator
-
-
-alternatively: treat append like cons, strings like lists
-
-magic cons as "aa" ++ x would treat x like a char and x* as a string, but "aa" ++ "bb" would be automa
-tically "aabb"
-
-iterable(L,H,T) :- L = [H|T].
-
-
-"foo ${} $a"
-""" fooo foo
-foo foo"
-
-regexes?
-/foo bar /
-
-string replacement ?
-:
