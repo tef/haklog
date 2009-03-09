@@ -11,6 +11,7 @@ identifier(A) -->  csym(C),csyms(N), {string_to_atom([C|N],A)},!.
 csyms([H|T]) --> csym(H), csyms(T).
 csyms([]) --> [].
 csym(C) --> [C], {code_type(C, csymf)}.
+csym_(C) --> [C], {code_type(C, csym)}.
 
 string(A) --> "\"", chars(S), {string_to_list(A,S)},!.
 chars([]) --> "\"".
@@ -69,7 +70,7 @@ rx_list([p(any,_)],_) --> ws.
 rx_class(_) --> ("/";")";"]";"$"),!,{fail}.
 rx_class(O) --> "(" ,!, ws,  rx(O, 100), ws, ")" .
 rx_class(O) --> "\\",!, rxescapes(O).
-rx_class(O) --> csym(A), "-", csym(B),!, rxbuild(crange,A,B,O).
+rx_class(O) --> csym_(A), "-", csym_(B),!, rxbuild(crange,A,B,O).
 rx_class(O) --> [L], {string_to_atom([L],O)}.
 
 rx(_,_) --> ("/";")";"]";"$"),!,{fail}.
@@ -83,7 +84,7 @@ rx(O,N1) --> "\\",!, rxescapes(C), rxfollow(C,O,N1).
 rx(O,N1) --> [L], {string_to_atom([L],A)}, rxfollow(A, O, N1).
 
 rxescapes(O) --> "n",!,rxbuild(nl,O).
-rxescapes(O) --> [X], {member(X,"wWsS"), string_to_atom([X],A)},!,rxbuild(class,A,O).
+rxescapes(O) --> [X], {member(X,"wWsSdD"), string_to_atom([X],A)},!,rxbuild(class,A,O).
 
 
 

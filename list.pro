@@ -43,8 +43,10 @@ to_string(A,S) :- !,atom(A), string_to_atom(A,S).
 
 class_match(X,S) :- string(S), string_to_list(S,L), !, class_match(X,L).
 class_match(X,S) :- atom(S), atom_codes(S,L), !, class_match(X,L).
-class_match(w,S) :- code_type(S,csym).
-class_match('W',S) :- \+code_type(S,csym).
+class_match(w,S) :- code_type(S,csymf).
+class_match('W',S) :- \+code_type(S,csymf).
+class_match(d,S) :- code_type(S,digit).
+class_match('D',S) :- \+code_type(S,digit).
 class_match(s,S) :- code_type(S,white).
 class_match('S',S) :- \+code_type(S,white).
 crange_match(X,S) :- string(S), string_to_list(S,L), !, crange_match(X,L).
