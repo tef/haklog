@@ -18,8 +18,8 @@ prolog   vs     haklog
 atom            'atom
 Variable        variable/Variable
 _               _
-X is 1+2        x = {1+2}
-X = 1 + 2       x = 1+2
+X is 1+2        x = {1 + 2}
+X = 1 + 2       x = 1 + 2
 foo(X,Y)        foo x y
 predicates      functions
 !               n/a
@@ -64,13 +64,13 @@ same for []'s -lists
 ()'s can only contain one statement
 
 here is a list: [1 2 3 4] if I call 
-foo [1+2 3+4], it recieves  a list containing 1+2 3+4
-again, like prolog x = [1+2 3+4] also does not evaluate arguments.
+foo [1 + 2 3 + 4], it recieves  a list containing 1 + 2 3 + 4
+again, like prolog x = [1 + 2  3 + 4] also does not evaluate arguments.
 
-so: 1+2 - expression, evaluated
-x = 1+2 - unification, 1+2 is not evaluated
-foo 1+2 - unification again
-foo {1+2} - explicit expression, evaluated.
+so: 1 + 2 - expression, evaluated
+x = 1 + 2 - unification, 1+2 is not evaluated
+foo 1 + 2 - unification again
+foo {1 + 2} - explicit expression, evaluated.
 
 a little note:
 foo followed by items is a function call
@@ -81,7 +81,7 @@ x + y 1 2 3 is the list (x+y) 1 2 3
 x + foo(y) or x + (foo y) foo is evaluated
 foo bar(y) - unification does not evaluate bar(y).
 
-` is the built in eval function, and calling x = 1+2; eval x returns 3
+` is the built in eval function, and calling x = 1 + 2; eval x returns 3
 to escape evaluation in unification, use {}'s, not `
 
 here is another example: append
@@ -118,6 +118,7 @@ pattern matching:
 
     append x y = [x* y*]
 
+    note infix operators need a space before them
 anonymous functions are declared using _ i.e _ x :- x
 
 
