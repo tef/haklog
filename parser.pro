@@ -111,7 +111,7 @@ exprn(O,N) --> item(L), !, follow(L,O,N).
 % follow parts
 idfollow(O,X,N1) --> "(" -> {5 < N1} ,!, ws, exprl(Op, 90), ws, ")",!, follow(call(X,Op), O ,N1).
 idfollow(O,X,N1) --> {90 < N1},ws,\+infix(_,_,_),exprn(L1,90),!, exprl(L,90), !,follow(call(X,[L1|L]), O, N1). 
-idfollow(O,X,N1) --> !,follow(id(X), O, N1). 
+idfollow(O,X,N1) --> !,idbuild(X,Xo), follow(Xo, O, N1). 
 
 % every expression is ast-fragment then a follow. the fragment is passed
 % to follow, to check for infix stuff (that contains it)
@@ -124,6 +124,9 @@ follow(O,O,_) --> !.
 
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
+idbuild(fail,fail) -->!.
+idbuild(true,true) -->!.
+idbuild(A,id(A)) --> !.
 rxbuild(dot,id('_')) --> !.
 rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
 rxbuild(N,p(N,[])) --> !.

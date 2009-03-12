@@ -5,8 +5,12 @@ make_environment([],[]).
 make_environment([W|T],[W-id(W)|To]) :- make_environment(T,To).
 
 spawn(E,C,pid(Id)) :- thread_create(eval(E,[],C,_), Id, []).
-send(pid(Id),M) :- bound(M),thread_send_message(Id,[pid(Id)|M]),!.
+send(pid(Id),M) :- ground(M),thread_send_message(Id,[pid(Id)|M]),!.
+send(fd(Id),M) :- ground(M),write(Id,M),!.
 recv(M) :- thread_get_message(M),!.
+read_(fd(I),M) :- get_char(I,M).
+open_(F,fd(I)) :- open(F, read, I).
+close_(fd(F)) :- close(F).
 
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
@@ -42,7 +46,11 @@ eval(E,E,call(say,[]),[]) :- !,nl.
 eval(E,Eo,call(say,[X|T]),O) :- !,bind_vars(E,E1,X,X1),!, hprint(X1), eval(E1,Eo,call(say,T),O).
 eval(E,Eo,call(spawn,X),Z) :- !,bind_vars(E,Eo,X,X1),!, spawn(Eo,X1,Z).
 eval(E,Eo,call(send,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, send(X1,Y1).
+eval(E,Eo,call(write,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, send(X1,Y1).
 eval(E,Eo,call(recv,T),Z) :- !,recv(X), !,eval_case(E,Eo,X,T,Z). 
+eval(E,Eo,call(read,[S|T]),Z) :- !, bind_vars(E,E1,S,St), !, read_(St,X), !,eval_case(E1,Eo,X,T,Z). 
+eval(E,Eo,call(open,[S]),Z) :- !, bind_vars(E,Eo,S,St), !, open_(St,Z).
+eval(E,Eo,call(close,[S]),[]) :- !, bind_vars(E,Eo,S,St), !, close_(St).
 eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Yo,[],_), eval(E,Eo,Yo,Z).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
