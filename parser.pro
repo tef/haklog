@@ -129,7 +129,8 @@ rxbuild(N,p(N,[])) --> !.
 rxbuild(choice,X,p(choice,X)) --> !.
 rxbuild(class,X,p(class,X)) --> !.
 rxbuild(P,R,L) --> build(P,R,L).
-rxbuild(bind,L,R,p(bind,[L,id(R)])) --> !.
+rxbuild(bind,L,R,p(bind,[L,id(R)])) --> atom(R),!.
+rxbuild(bind,L,R,p(bind,[L,R])) --> !.
 rxbuild(crange,L,R,p(crange,[L,R])) --> !.
 rxbuild(P,R,L,O) --> build(P,R,L,O).
 build(any,R,p(any,R)) --> !.
