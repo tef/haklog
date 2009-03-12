@@ -151,3 +151,5 @@ builtin(lt). apply(lt,[X,Y],Y) :-  X <Y,!.
 builtin(le). apply(le,[X,Y],Y) :-  X =<Y,!.
 builtin(gt). apply(gt,[X,Y],Y) :-  X >Y,!.
 builtin(ge). apply(ge,[X,Y],Y) :-  X >=Y,!.
+builtin(number). apply(number,[X],Y) :-  cast_to_number(X,Y),!.
+builtin(string). apply(string,[X],Y) :-  cast_to_string(X,Y),!.

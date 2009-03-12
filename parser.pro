@@ -2,10 +2,11 @@
 % top down operator precedence parser 
 
 % tokens
-number(N) --> digit(D0), digits(D), { number_chars(N, [D0|D]) },!.
-digits([D|T]) --> digit(D), digits(T).
+number(N) --> digit(D0), digits(D), { number_codes(N, [D0|D]) },!.
+digits([D|T]) --> ("_" -> !; []),digit(D), digits(T).
+digits(O) --> ".",!, {append(".",T,O)}, digits(T).
 digits([]) --> [].
-digit(D) --> [D], {code_type(D, digit)}.
+digit(D) --> [D], {code_type(D, digit)},!.
 
 identifier(A) -->  csym(C),csyms(N), {string_to_atom([C|N],A)},!. 
 csyms([H|T]) --> csym(H), csyms(T).
@@ -18,9 +19,9 @@ chars([]) --> "\"".
 chars(O) --> "\\",!, escapes(O). 
 chars([H|T]) --> [H], chars(T).
 
-escapes(O) --> "\"", append("\"",T,O),chars(T).
-escapes(O) --> "n", append("\n",T,O),chars(T).
-escapes(O) --> "t", append("\t",T,O),chars(T).
+escapes(O) --> "\"", {append("\"",T,O)},chars(T).
+escapes(O) --> "n", {append("\n",T,O)},chars(T).
+escapes(O) --> "t", {append("\t",T,O)},chars(T).
 escapes(O) --> nl, chars(O).
 
 ws0 --> [X], {code_type(X, white)}, ws.
@@ -164,7 +165,7 @@ infix(def, right, 99) --> ":-".
 infix(ifthen,left,85) --> "->".
 infix(le, right,60) --> ">=".
 infix(eq, right,60) --> "==".
-infix(unf, left,80) --> "=".
+infix(unf, right,80) --> "=".
 infix(ge,right,60) --> "=<".
 infix(gt,right,60) --> ">".
 infix(lt,right,60) --> "<".

@@ -6,6 +6,16 @@ expr_to_string(S,S) :- string(S),!.
 expr_to_string(V,S) :- \+var(V), V = [], string_to_list(S,[]).
 expr_to_string(I,S) :- atom(I), string_to_atom(S,I),!.
 
+expr_to_atom(S,S) :- atom(S),!.
+expr_to_atom(I,S) :- string(I), string_to_atom(I,S),!.
+
+cast_to_string(S,O) :- expr_to_string(S,O),!.
+cast_to_string(S,O) :- atom_number(S,A), string_to_atom(O,A),!.
+
+cast_to_number(S,S) :- number(S),!.
+cast_to_number(S,O) :- expr_to_atom(S,A), atom_number(A,O),!.
+
+
 iterable_pair([_|_],[_|_]) :-!.
 iterable_pair(L,R) :- string(L),!, \+string_length(L,0), notnull(R),!.
 iterable_pair(L,R) :- string(R),!, \+string_length(R,0), (var(L);L=[_|_]),!.
