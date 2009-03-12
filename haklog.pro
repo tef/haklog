@@ -2,7 +2,7 @@
 
 hk :- consult('parser.pro'),
     consult('eval.pro'),
-    consult('list.pro'),
+    consult('lib.pro'),
     consult('unify.pro'),
     consult('print.pro'),
     consult('print.pro').
