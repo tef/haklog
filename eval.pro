@@ -1,17 +1,3 @@
-reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,unf,in,
-    add,sub,div,mul,eq,le,lt,gt,ge,say,trace,spawn, recv, send
-    ]).
-make_environment([],[]).
-make_environment([W|T],[W-id(W)|To]) :- make_environment(T,To).
-
-spawn(E,C,pid(Id)) :- thread_create(eval(E,[],C,_), Id, []).
-send(pid(Id),M) :- ground(M),thread_send_message(Id,[pid(Id)|M]),!.
-send(fd(Id),M) :- ground(M),write(Id,M),!.
-recv(M) :- thread_get_message(M),!.
-read_(fd(I),M) :- get_char(I,M).
-open_(F,fd(I)) :- open(F, read, I).
-close_(fd(F)) :- close(F).
-
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
 %eval(_,_,X,_) :-  writef("Eval: %w",[X]), fail.

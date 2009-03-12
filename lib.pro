@@ -15,15 +15,33 @@ cast_to_string(S,O) :- atom_number(S,A), string_to_atom(O,A),!.
 cast_to_number(S,S) :- number(S),!.
 cast_to_number(S,O) :- expr_to_atom(S,A), atom_number(A,O),!.
 
+reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,unf,in,
+    add,sub,div,mul,eq,le,lt,gt,ge,say,trace,spawn, recv, send
+    ]).
+make_environment([],[]).
+make_environment([W|T],[W-id(W)|To]) :- make_environment(T,To).
+
+spawn(E,C,pid(Id)) :- thread_create(eval(E,[],C,_), Id, []).
+send(pid(Id),M) :- ground(M),thread_send_message(Id,[pid(Id)|M]),!.
+send(fd(Id),M) :- ground(M),write(Id,M),!.
+recv(M) :- thread_get_message(M),!.
+read_(fd(I),M) :- ground(I), get_char(I,M).
+open_(F,fd(I)) :- open(F, read, I).
+close_(fd(F)) :- ground(F),close(F).
+
+
 
 iterable_pair([_|_],[_|_]) :-!.
 iterable_pair(L,R) :- string(L),!, \+string_length(L,0), notnull(R),!.
-iterable_pair(L,R) :- string(R),!, \+string_length(R,0), (var(L);L=[_|_]),!.
+iterable_pair(L,R) :- string(R),!, \+string_length(R,0), notnull(L),!.
+iterable_pair(fd(L),R) :- ground(L),!, notnull(R),!.
+iterable_pair(L,fd(R)) :- ground(R),!, notnull(L),!.
 
 iterable_head_tail(S, H,T) :-  string(S),!,\+string_length(S,0), (var(H);string(H)), (var(T);string(T)),sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
 
 iterable_head_tail(S, H,T) :-  string(H), string(T),!, string_concat(H,T,S).
 iterable_head_tail(S, H,T) :-  string(H), \+var(T), T=[],!,S=H.
+iterable_head_tail(fd(I), H,O) :- !,(\+var(I), read_(fd(I),H),!, O=fd(I);O=[]).
 iterable_head_tail([H|T],H,T) :-!.
 
 iterable_some(I,O,Lo) :- iterable_head_tail(I,H,T), iterable_any(T,To,Lo), iterable_head_tail(O,H,To).
@@ -41,7 +59,7 @@ empty([],[]) :-!.
 empty([_|_],[]) :-!.
 empty(S,S0) :- string(S),!,string_to_list(S0,[]).
 null(X) :- \+var(X) , (X=[]; (string(X), string_length(X,0))),!.
-notnull(X) :- !, (var(X),!; X=[_|_],!; (string(X), \+string_length(X,0))).
+notnull(X) :- !, (var(X),!; X=[_|_],!; string(X),!, \+string_length(X,0); X = fd(I), ground(I)).
 
 concat(A,B,O) :- to_string(A,A1), to_string(B,B1), !, string_concat(A1,B1,O).
 concat(A,B,O) :- \+ var(O), (var(A); var(B)), !, string_concat(A,B,O).
