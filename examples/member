@@ -1,3 +1,4 @@
+#!/usr/bin/env haklog
 member x x,_ :- x
 member x _,t :- member x t
 

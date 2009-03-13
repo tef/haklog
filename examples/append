@@ -1,3 +1,4 @@
+#!/usr/bin/env haklog
 append [] list :- list 
 append h,t list :- h,{append t list}
 

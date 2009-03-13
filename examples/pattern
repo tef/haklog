@@ -1,3 +1,4 @@
+#!/usr/bin/env haklog
 a = [1 2]
 say a
 every {

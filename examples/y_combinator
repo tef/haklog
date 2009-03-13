@@ -1,3 +1,4 @@
+#!/usr/bin/env haklog
 fact f :- {
     _ a :- {
         case a 0 -> 1 a -> a * f({a - 1})

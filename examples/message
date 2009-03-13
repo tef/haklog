@@ -1,3 +1,4 @@
+#!/usr/bin/env haklog
 foo :- { 
     recv p,n -> say([p n])
 }
