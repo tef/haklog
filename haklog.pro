@@ -12,8 +12,17 @@ hk :- consult('parser.pro'),
 start :-    catch(main,E,(print_message(error,E),fail)),    halt.
 start :-    halt.
 
+start_ :-    catch(main_,E,(print_message(error,E),fail)),    halt.
+start_ :-    halt.
+
 main :- current_prolog_flag(argv,X),
         clean_arguments(X,[],[_,File|_]),
+        run_file(File).
+
+main_ :- current_prolog_flag(argv,[_,X|_]),
+        run_file(X).
+       
+run_file(File) :- 
         prompt(_,''),
         (\+File = [] -> (
            string_to_atom(File,Name),

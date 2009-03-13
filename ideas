@@ -17,6 +17,8 @@ done:
 bugs:
     iron out bugs in unification with patterns
     isn't should match with empty list
+    move reserved words into parser.
+    test #! mechanism
 
 housekeeping:
     pretty printer

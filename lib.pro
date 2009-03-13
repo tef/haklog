@@ -29,19 +29,19 @@ read_(fd(I),M) :- ground(I), get_char(I,M).
 open_(F,fd(I)) :- open(F, read, I).
 close_(fd(F)) :- ground(F),close(F).
 
-
+empty_string(S) :- string_to_list(S,"").
 
 iterable_pair([_|_],[_|_]) :-!.
 iterable_pair(L,R) :- string(L),!, \+string_length(L,0), notnull(R),!.
 iterable_pair(L,R) :- string(R),!, \+string_length(R,0), notnull(L),!.
-iterable_pair(fd(L),R) :- ground(L),!, notnull(R),!.
-iterable_pair(L,fd(R)) :- ground(R),!, notnull(L),!.
+iterable_pair(fd(L),R) :- ground(L),!, (at_end_of_stream(L) -> fail ;notnull(R)),!.
+iterable_pair(L,fd(R)) :- ground(R),!, (at_end_of_stream(R) -> fail; notnull(L)),!.
 
 iterable_head_tail(S, H,T) :-  string(S),!,\+string_length(S,0), (var(H);string(H)), (var(T);string(T)),sub_string(S,0,1,A,H), sub_string(S,1,A,0,T).
 
 iterable_head_tail(S, H,T) :-  string(H), string(T),!, string_concat(H,T,S).
 iterable_head_tail(S, H,T) :-  string(H), \+var(T), T=[],!,S=H.
-iterable_head_tail(fd(I), H,O) :- !,(\+var(I), read_(fd(I),H),!, O=fd(I);O=[]).
+iterable_head_tail(fd(I), H,O) :- \+var(I),!,read_(fd(I),H1),!,expr_to_string(H1,H),(at_end_of_stream(I),!,empty_string(O),!; O=fd(I)).
 iterable_head_tail([H|T],H,T) :-!.
 
 iterable_some(I,O,Lo) :- iterable_head_tail(I,H,T), iterable_any(T,To,Lo), iterable_head_tail(O,H,To).
@@ -60,6 +60,7 @@ empty([_|_],[]) :-!.
 empty(S,S0) :- string(S),!,string_to_list(S0,[]).
 null(X) :- \+var(X) , (X=[]; (string(X), string_length(X,0))),!.
 notnull(X) :- !, (var(X),!; X=[_|_],!; string(X),!, \+string_length(X,0); X = fd(I), ground(I)).
+%notnull(X) :- !, (var(X),!; X=[_|_],!; string(X),!, \+string_length(X,0)).
 
 concat(A,B,O) :- to_string(A,A1), to_string(B,B1), !, string_concat(A1,B1,O).
 concat(A,B,O) :- \+ var(O), (var(A); var(B)), !, string_concat(A,B,O).
