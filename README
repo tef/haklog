@@ -1,5 +1,8 @@
 haklog is a functional dialect of prolog without the cut.
 
+note: I've only tested this with SWI prolog. Although I've tried
+to keep swi specific bits to a minimum they are still there 
+
 a quick overview of the differences: 
 
 classic prolog example:
@@ -40,13 +43,20 @@ findall(X,foo(X),L)
                 L = every foo x
 call(X)         eval x
 
+syntax warning: you need a space before infix operators.
+
+there also isn't a unary negative yet either. it will probably 
+follow the same syntax conventions
+
+
+
 a rough overview of the syntax - check parser.pl for specifics 
 
 haklog is like prolog in that arguments are not evaluated, but variables
 are bound before  unifying.
 
 foo x y z    call the function foo with x y and z
-foo 1+2      call the function foo with the structure '1+2'
+foo 1 + 2      call the function foo with the structure '1 + 2'
 
 i.e. unification.
 
@@ -68,7 +78,7 @@ foo [1 + 2 3 + 4], it recieves  a list containing 1 + 2 3 + 4
 again, like prolog x = [1 + 2  3 + 4] also does not evaluate arguments.
 
 so: 1 + 2 - expression, evaluated
-x = 1 + 2 - unification, 1+2 is not evaluated
+x = 1 + 2 - unification, 1 + 2 is not evaluated
 foo 1 + 2 - unification again
 foo {1 + 2} - explicit expression, evaluated.
 
@@ -77,7 +87,7 @@ foo followed by items is a function call
 foo on it's own is a variable.
 
 x + y is x, y variables
-x + y 1 2 3 is the list (x+y) 1 2 3
+x + y 1 2 3 is the list (x + y) 1 2 3
 x + foo(y) or x + (foo y) foo is evaluated
 foo bar(y) - unification does not evaluate bar(y).
 
@@ -118,7 +128,7 @@ pattern matching:
 
     append x y = [x* y*]
 
-    note infix operators need a space before them
+again: note infix operators need a space before them
 anonymous functions are declared using _ i.e _ x :- x
 
 

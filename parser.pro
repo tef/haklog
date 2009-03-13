@@ -1,6 +1,10 @@
 #!/usr/bin/swipl -q -t main -f 
 % top down operator precedence parser 
 
+% works by finding an item, and then a follow.
+% the follow searches for a right hand side of a given binding power
+% and then builds the expression
+
 % tokens
 number(N) --> digit(D0), digits(D), { number_codes(N, [D0|D]) },!.
 digits([D|T]) --> ("_" -> !; []),digit(D), digits(T).

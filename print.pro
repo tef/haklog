@@ -1,3 +1,4 @@
+% horrible printer. like pretty print but ugly
 hprint(T) :- hprint_(T),!.
 hprint_(H) :- var(H),!, write(H).
 hprint_([]).

@@ -1,7 +1,10 @@
+% miscelaneous  list and general functions
+
 join(A,[],A) :- !.
 join(A,B,C) :- string(A), string(B), !, string_concat(A,B,C).
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 to_list(S,L) :- string(S), string_to_list(S,L),!.
+
 expr_to_string(S,S) :- string(S),!.
 expr_to_string(V,S) :- \+var(V), V = [], string_to_list(S,[]).
 expr_to_string(I,S) :- atom(I), string_to_atom(S,I),!.
@@ -15,6 +18,7 @@ cast_to_string(S,O) :- atom_number(S,A), string_to_atom(O,A),!.
 cast_to_number(S,S) :- number(S),!.
 cast_to_number(S,O) :- expr_to_atom(S,A), atom_number(A,O),!.
 
+% todo - the parser should know these
 reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,unf,in,
     add,sub,div,mul,eq,le,lt,gt,ge,say,trace,spawn, recv, send
     ]).
@@ -31,6 +35,8 @@ close_(fd(F)) :- ground(F),close(F).
 
 empty_string(S) :- string_to_list(S,"").
 
+% these are used heavily in unification to generally iterate over sequences
+% beware.
 iterable_pair([_|_],[_|_]) :-!.
 iterable_pair(L,R) :- string(L),!, \+string_length(L,0), notnull(R),!.
 iterable_pair(L,R) :- string(R),!, \+string_length(R,0), notnull(L),!.

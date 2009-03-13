@@ -9,6 +9,9 @@ hk :- consult('parser.pro'),
 
 :- hk.
 
+% this duplication isn't intentional, it is just so if you compile a binary
+% with pl, use start_
+
 start :-    catch(main,E,(print_message(error,E),fail)),    halt.
 start :-    halt.
 
@@ -42,7 +45,7 @@ execute(I):-
 read_file(I,Li,Lo) :-  get_byte(I,C), ((C = -1,!,Lo=[]); Lo=[C|L1], read_file(I,Li,L1)).  
 
 % interpreter
-
+% featuring world most useful error messages
 exec(X,E,O) :- 
     (parse(X,S);write('Syntax Error'),nl,fail),!,
     reserved(R),

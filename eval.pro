@@ -1,4 +1,8 @@
+
+
 evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
+
+% eval(+Environment,-Environment,+Expression,-Result)
 
 %eval(_,_,X,_) :-  writef("Eval: %w",[X]), fail.
 eval(E,E,X,X) :- var(X),!.
@@ -60,36 +64,48 @@ eval(E,E,X,X) :- atomic(X),!.
 eval(E,E,X,X) :- string(X),!.
 eval(E,E,X,X) :- var(X),!.
 
+%eval_quote(+Expression,-Expression
+% I'm still not happy with the semantics of quote - should it behave differently
+% in evaluation/executable contexts?
+
 eval_quote(id(X),X) :- !.
 eval_quote([H|T], [Ho|To]) :-!, eval_quote(H,Ho),!, eval_quote(T,To),!.
 eval_quote(call(def,T), call(def,T)) :-!.
 eval_quote(call(H,T), call(H,To)) :-!, eval_quote(T,To),!.
 eval_quote(X,X) :- !.
 
+%eval_case(+Env,-Env,+Expression,+CaseList,-Result).
 %eval_case(_,_,A,T,_) :- writef("\ncase: [%w] [%w]\n",[A,T]),  fail.
 eval_case(E,E,_,[],[]).
 eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(E1,E2,A,X1,_)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
 eval_case(Ei,Eo,A,[X],O) :- !,bind_vars(Ei,E1,X,X1) , !, unify(E1,Eo,A,X1,O).
 
+%eval_if(+Env,-Env,+IfList,-Result).
 eval_if(E,E,[],[]).
 eval_if(Ei,Eo,[call(ifthen,[X,Y])|T],O) :- !, (evalone(Ei,E1,X,_) -> (!, eval(E1,Eo,Y,O))); eval_if(Ei,Eo,T,O). 
 eval_if(Ei,Eo,[E],O) :- !, eval(Ei,Eo,E,O).
+
+%eval_block(+Env,-Env,+Expression,-Result)
+% this returns the last result in a block 
+% {a;b;c} --> a and b and c
 
 eval_block(E,E,[],[]). 
 eval_block(E,Eo,[H],O) :- !, eval(E,Eo,H,O).
 eval_block(E,Eo,[H|T],X) :-  eval(E,E1,H,_), !,eval_block(E1,Eo,T,X).
 
+%eval_conj(+Env,-Env, +ConjList, +LastResult, -Result).
 eval_conj(E,E,[],X,X). 
 eval_conj(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_conj(E1,Eo,T,O,X).
 
+%eval_fun(+ParentEnv, +StartEnv, +FunctionDef, +FunctionArgs, -Output)
 % evaluate against a given list of functions
+
 eval_fun(P,S,lambda(A,C),T,O) :-!,bind_vars(S,E1,A,A1),!, unify(E1,Eo,A1,T,_), eval_block(['_'-P|Eo],_,C,O).
 eval_fun(P,S,call(disj,[A,B]),T,O) :- !, (eval_fun(P,S,A,T,O); \+ var(B),eval_fun(P,S,B,T,O)).
 
-quote_unf(E,E,id(X),X) :- !.
-quote_unf(E,Eo,[H|T], [Ho|To]) :-!, quote_unf(E,E1,H,Ho),!, quote_unf(E1,Eo,T,To),!.
-quote_unf(E,E,X,X) :- !.
 
+%bind_vars(+Env,-Env,+Expr,-Expr)
+% Bind the variables in the expression i.e replace id(X) with an actual variable
 bind_vars(E,E,X,X) :- var(X),!.
 bind_vars(E,Eo,id(X),O) :- !, bind_variable(E,Eo,X ,O),!.
 bind_vars(E,Eo,quote(X),Y) :- !, quote_unf(E,Eo,X,Y).
@@ -101,7 +117,13 @@ bind_vars(E,Eo,block(X),O) :- !, eval_block(E,Eo,X,O).
 bind_vars(E,Eo,[H|T], [Ho|To]) :-!, bind_vars(E,E1,H,Ho), bind_vars(E1,Eo,T,To).
 bind_vars(E,E,X,X) :- !.
 
+quote_unf(E,E,id(X),X) :- !.
+quote_unf(E,Eo,[H|T], [Ho|To]) :-!, quote_unf(E,E1,H,Ho),!, quote_unf(E1,Eo,T,To),!.
+quote_unf(E,E,X,X) :- !.
 
+
+%bind_lambda_vars(+RecursiveName,+Environment,+Expr,-Expr,+BoundAlready,-BoundAlready)
+% bind the variables in a lambda expression
 bind_lambda_vars(_,_,id('_'),id('_'),V,V) :-!. 
 bind_lambda_vars(R,_,id(R),id('_rec'),V,V) :-!. 
 bind_lambda_vars(id(R),_,id(R),id('_rec'),V,V) :-!. 
@@ -120,22 +142,29 @@ bind_lambda_vars(R,E,block(X),block(Xo),Vi,Vo) :- !, bind_lambda_vars(R,E,X,Xo,V
 bind_lambda_vars(R,E,p(P,T),p(P,To),Vi,Vo) :-!, bind_lambda_vars(R,E,T,To,Vi,Vo).
 bind_lambda_vars(_,_,X,X,V,V) :- !.
 
-
+%defined(+Environment,+Key,-Value).
 % find all function defs, return a list of functions and an environment of defined things
 defined(E,K,V) :- member(K-V,E).
 defined(E,K,V) :- !, member('_'-P,E), defined(P,K,V).
 
+%def_variable(+Env,-Env,+Name,-Value)
+%define a variable using :-
 def_variable(E,E,'_',_):- !.
 def_variable(E,[K-call(disj,[Vi,V])|R],K,V) :- select(K-Vi, E, R),!.
 def_variable(E,[K-V|E],K,V):- !.
 
+%bind_variable(+Env,-Env,+Name,-Value)
 bind_variable(E,E,'_',_):- !.
 bind_variable(E,E,'_env',E):- !.
 bind_variable(E,E,K,V) :- defined(E,K,V),!.
 bind_variable(E,[K-V|E],K,V):- !.
 
+%builtin(+Name)
+%apply(+Name,+Args,-Output)
 % builtin functions
+% this is swi specific
 :- discontiguous builtin/1, apply/3.
+
 builtin(add). apply(add,[X,Y],O) :- O is X+Y,!.
 builtin(sub). apply(sub,[X,Y],O) :- O is X-Y,!.
 builtin(mul). apply(mul,[X,Y],O) :- O is X*Y,!.
