@@ -25,7 +25,7 @@ unify(E,E,[],[],[]) :- !.
 unify(_,_,[],[H|_],_) :- var(H) , !, fail.
 unify(_,_,[H|_],[],_) :- var(H) , !, fail.
 
-unify(E,Eo,[Pa|Lt],[Pb|Rt],[p(Po,Ao)|Ot]) :- \+var(Pa), Pa = p(Pl,Al),\+var(Pb), Pb = p(Pr,Ar), pattern_combine(Pl,Pr,Po), arguments_combine(Al,Ar,Ao), !, Al=Ar, unify(E,Eo,Lt,Rt,Ot).
+unify(E,Eo,[Pa|Lt],[Pb|Rt],[Po|Ot]) :- \+var(Pa), Pa = p(Pl,Al),\+var(Pb), Pb = p(Pr,Ar), pattern_combine(Pl,Pr,Al,Ar,Po), !, Al=Ar, unify(E,Eo,Lt,Rt,Ot).
 unify(E,Eo,[Pa|Lt],Ro,R) :- \+var(Pa), Pa = p(P,A), pattern_eats(P,Ro), !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
 unify(E,Eo,Lo,[Pa|Rt],L) :- \+var(Pa), Pa = p(P,A), pattern_eats(P,Lo), !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,_).
 
@@ -46,18 +46,18 @@ unify(E,E,X,X,X) :- !.
 unify(E,E,S,A,S) :- string(S),!, expr_to_string(A,S1),!, S1=S.
 unify(E,E,A,S,S) :- string(S),!, expr_to_string(A,S1),!, S1=S.
 
-arguments_combine(X,Y,X) :- var(X), !,var(Y), X=Y,!.
-arguments_combine(X,Y,X) :- \+ var(X), \+ var(Y) , X=Y.
+arguments_combine(Xa,Y,Xa) :- var(Xa), !,var(Y), Xa=Y,!.
+arguments_combine(Xa,Y,Xa) :- \+ var(Xa), \+ var(Y) , Xa=Y.
 
-pattern_combine(X,X,X).
-pattern_combine(X,some,some) :- member(X,[zsome,any,zany]).
-pattern_combine(some,X,some) :- member(X,[zsome,any,zany]).
-pattern_combine(X,zsome,zsome) :- member(X,[any,zany]).
-pattern_combine(zsome,X,zsome) :- member(X,[any,zany]).
-pattern_combine(any,zany,any).
-pattern_combine(zany,any,any).
-pattern_combine(maybe,zmaybe,maybe).
-pattern_combine(zmaybe,maybe,maybe).
+pattern_combine(X,X,Xa,Ya,p(X,Ao)) :- !,arguments_combine(Xa,Ya,Ao).
+pattern_combine(X,some,Xa,Ya,p(some,Ao)) :- member(X,[zsome,any,zany]),!,arguments_combine(Xa,Ya,Ao).
+pattern_combine(some,X,Xa,Ya,p(some,Ao)) :- member(X,[zsome,any,zany]),!,arguments_combine(Xa,Ya,Ao).
+pattern_combine(X,zsome,Xa,Ya,p(zsome,Ao)) :- member(X,[any,zany]),!,arguments_combine(Xa,Ya,Ao).
+pattern_combine(zsome,X,Xa,Ya,p(zsome,Ao)) :- member(X,[any,zany]),!,arguments_combine(Xa,Ya,Ao).
+pattern_combine(any,zany,Xa,Ya,p(any,Ao)) :-!,arguments_combine(Xa,Ya,Ao).
+pattern_combine(zany,any,Xa,Ya,p(any,Ao)) :-!,arguments_combine(Xa,Ya,Ao).
+pattern_combine(maybe,zmaybe,Xa,Ya,p(maybe,Ao)) :-!,arguments_combine(Xa,Ya,Ao).
+pattern_combine(zmaybe,maybe,Xa,Ya,p(maybe,Ao)) :-!,arguments_combine(Xa,Ya,Ao).
 
 pattern_eats(_,V) :- var(V) ,!, fail.
 pattern_eats(_,[V|_]) :- var(V) ,!.
