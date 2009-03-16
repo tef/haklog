@@ -94,6 +94,7 @@ rx(O,N1) --> [L], {string_to_atom([L],A)}, rxfollow(A, O, N1).
 
 rxescapes(O) --> "n",!,rxbuild(nl,O).
 rxescapes(O) --> [X], {member(X,"wWsSdD"), string_to_atom([X],A)},!,rxbuild(class,A,O).
+rxescapes(O) --> [X], {member(X,"^$*+.-[](){}\\"), string_to_atom([X],O)},!.
 
 
 

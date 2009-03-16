@@ -29,6 +29,9 @@ unify(E,Eo,[Pa|Lt],[Pb|Rt],[Po|Ot]) :- \+var(Pa), Pa = p(Pl,Al),\+var(Pb), Pb = 
 unify(E,Eo,[Pa|Lt],Ro,R) :- \+var(Pa), Pa = p(P,A), pattern_eats(P,Ro), !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
 unify(E,Eo,Lo,[Pa|Rt],L) :- \+var(Pa), Pa = p(P,A), pattern_eats(P,Lo), !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,_).
 
+unify(E,E,S,A,S) :- string(S), expr_to_string(A,S1),!, S1=S.
+unify(E,E,A,S,S) :- string(S), expr_to_string(A,S1),!, S1=S.
+
 unify(E,Eo,L,R,O) :- iterable_pair(L,R), iterable_head_tail(L,Lh,Lt), iterable_head_tail(R,Rh,Rt),( (var(Lh),!,unify_var(E,E1,Lh,Rh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Lh,Ot)); (var(Rh),!,unify_var(E,E1,Rh,Lh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Rh,Ot))).
 
 unify(E,Eo,L,call(unf,A),C) :-!,eval(E,E1,call(unf,A),O),unify(E1,Eo,L,O,C).
@@ -43,8 +46,6 @@ unify(E,Eo,lambda(Ho,To), lambda(H,T),lambda(Oh,Ot)) :-!,unify(E,E1,H,Ho,Oh), un
 unify(E,Eo,block(X),O,J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,Xo,O,J).
 unify(E,Eo,O,block(X),J) :- !, eval_block(E,E1,X,Xo), unify(E1,Eo,O,Xo,J).
 unify(E,E,X,X,X) :- !.
-unify(E,E,S,A,S) :- string(S),!, expr_to_string(A,S1),!, S1=S.
-unify(E,E,A,S,S) :- string(S),!, expr_to_string(A,S1),!, S1=S.
 
 arguments_combine(Xa,Y,Xa) :- var(Xa), !,var(Y), Xa=Y,!.
 arguments_combine(Xa,Y,Xa) :- \+ var(Xa), \+ var(Y) , Xa=Y.
@@ -109,9 +110,7 @@ unify_var(E,E,X,X) :- !.
 %unify_var_p(+Pattern,+Env,-Env,+Args,+Right)
 %unify a pattern with a right hand side, only ones we expect out of a list context
 %are here
-unify_var_p(maybe,E,Eo,X,R) :- !, unify_var_p_l(maybe,E,Eo,X,[R]).
-unify_var_p(zmaybe,E,Eo,X,R) :- !, unify_var_p_l(zmaybe,E,Eo,X,[R]).
-unify_var_p(P,E,Eo,X,R) :- !, unify_var_p_l(P,E,Eo,X,R).
+unify_var_p(P,E,Eo,X,R) :- !, unify_var_p_l(P,E,Eo,X,[R]).
 
 %unify_var_p_l(+Pattern,+Env,-Env,+Args,+Var)
 % reminder- things matched to patterns are unified with a var

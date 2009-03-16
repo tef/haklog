@@ -4,7 +4,7 @@ evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
 % eval(+Environment,-Environment,+Expression,-Result)
 
-%eval(_,_,X,_) :-  writef("Eval: %w",[X]), fail.
+%eval(_,_,X,_) :-  writef("Eval: %w\n",[X]), fail.
 eval(E,E,X,X) :- var(X),!.
 eval(E,E,[],[]) :-!.
 eval(_,_,call(id(fail),_),_) :- !,fail.
@@ -104,7 +104,7 @@ bind_vars(_,E,Eo,id(X),O) :- !, bind_variable(E,Eo,X ,O),!.
 bind_vars(_,E,E,call(quote,X),call(quote,X)) :-!.
 bind_vars(_,E,E,lambda(H,T), lambda(H,T)) :- !.
 bind_vars(_,E,E,call(def,T), call(def,T)) :- !.
-bind_vars(M,E,Eo,call(H,T), call(Ho,To)) :-!, bind_vars(M,E,E1,H,Ho),bind_vars(m,E1,Eo,T,To).
+bind_vars(M,E,Eo,call(H,T), call(Ho,To)) :-!, bind_vars(M,E,E1,H,Ho),bind_vars(M,E1,Eo,T,To).
 bind_vars(M,E,Eo,[p(P,H)|T],R) :- bind_vars(M,E,Ei,H,H1),unify_var_p_l(P,Ei,E1,H1,Ho),!,bind_vars(M,E1,Eo,T,To), join(Ho,To,R).
 bind_vars(M,E,Eo,p(P,H),R) :- bind_vars(M,E,E1,H,H1), unify_var_p(P,E1,Eo,H1,R),!.
 bind_vars(M,E,Eo,p(P,H),p(P,Ho)) :-!, bind_vars(M,E,Eo,H,Ho).

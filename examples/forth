@@ -1,0 +1,19 @@
+#!/usr/bin/env haklog
+
+foo = "1 2 + 5 *"
+
+parse ~/^\d+:n \s* .*:t$/ :- {number n}, { once parse t}
+parse ~/^\+ \s* .*:t$/ :- "add",{once parse t}
+parse ~/^\* \s* .*:t$/ :- "mul",{once parse t}
+parse ~/^\s*$/ :- []
+parse x :- say "syntax error" and  fail
+
+exec [] it :- it
+exec "add",op a,b,it :- once exec op {a + b},it
+exec "mul",op a,b,it :- once exec op {a * b},it
+exec i,op it :- once exec op i,it
+
+x = {parse foo}
+say "input: " x
+y = {exec x []}
+say "output: " y
