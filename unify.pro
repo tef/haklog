@@ -58,6 +58,8 @@ pattern_combine(any,zany,Xa,Ya,p(any,Ao)) :-!,arguments_combine(Xa,Ya,Ao).
 pattern_combine(zany,any,Xa,Ya,p(any,Ao)) :-!,arguments_combine(Xa,Ya,Ao).
 pattern_combine(maybe,zmaybe,Xa,Ya,p(maybe,Ao)) :-!,arguments_combine(Xa,Ya,Ao).
 pattern_combine(zmaybe,maybe,Xa,Ya,p(maybe,Ao)) :-!,arguments_combine(Xa,Ya,Ao).
+pattern_combine(ahead,isnt,Xa,Ya,p(ahead,Xa)) :-!, \+ Xa = Ya.
+pattern_combine(isnt,ahead,Xa,Ya,p(ahead,Ya)) :-!, \+ Xa = Ya.
 
 pattern_eats(_,V) :- var(V) ,!, fail.
 pattern_eats(_,[V|_]) :- var(V) ,!.

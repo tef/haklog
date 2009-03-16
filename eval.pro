@@ -45,6 +45,7 @@ eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Y
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
 eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1),!, bind_vars(unf,E1,E2,B,B1), !,unify(E2,Eo,A1,B1,O).
+eval(E,Eo,call(eq,[A,B]),O) :- !,bind_vars(eq,E,E1,A,A1),!, bind_vars(eq,E1,_,B,B1), !,unify(E,Eo,A1,B1,O).
 eval(E,Eo,call(concat,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,eval(E2,E3,A1,A2), eval(E3,Eo,B1,B2), concat(A2,B2,O).
 eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,eval(E1,Eo,B,A1).
 eval(E,Eo,call(H,T),O) :-  \+ var(H),
@@ -98,6 +99,7 @@ bind_vars(E,Eo,A,B) :- bind_vars(eval,E,Eo,A,B).
 %bind_vars(+Eval,+Env,-Env,+Expr,-Expr)
 % Bind the variables in the expression i.e replace id(X) with an actual variable
 bind_vars(_,E,E,X,X) :- var(X),!.
+bind_vars(eq,E,Eo,id(X),O) :- !, bind_variable(E,Eo,X ,Ot),!, (var(Ot); Ot=O),!.
 bind_vars(_,E,Eo,id(X),O) :- !, bind_variable(E,Eo,X ,O),!.
 bind_vars(_,E,E,call(quote,X),call(quote,X)) :-!.
 bind_vars(_,E,E,lambda(H,T), lambda(H,T)) :- !.
@@ -156,7 +158,6 @@ builtin(add). apply(add,[X,Y],O) :- O is X+Y,!.
 builtin(sub). apply(sub,[X,Y],O) :- O is X-Y,!.
 builtin(mul). apply(mul,[X,Y],O) :- O is X*Y,!.
 builtin(div). apply(div,[X,Y],O) :- O is X/Y .
-builtin(eq). apply(eq,[X,Y],Y) :- X==Y,!.
 builtin(lt). apply(lt,[X,Y],Y) :-  X <Y,!.
 builtin(le). apply(le,[X,Y],Y) :-  X =<Y,!.
 builtin(gt). apply(gt,[X,Y],Y) :-  X >Y,!.
