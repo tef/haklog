@@ -1,0 +1,5 @@
+#!/usr/bin/env haklog
+
+x = "aaabbbccc"
+x = ~/a^n b^n c^n/
+say n
