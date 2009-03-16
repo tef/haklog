@@ -11,7 +11,7 @@ eval(_,_,call(id(fail),_),_) :- !,fail.
 eval(E,E,id(trace),[]) :- !,trace.
 eval(_,_,id(fail),_) :- !,fail.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
-eval(E,E,call(quote,[X]), Xo) :- !, eval_quote(X,Xo).
+eval(E,Eo,call(quote,X), X0) :- !,bind_vars(E,Eo,X,X0).
 eval(Ei,Eo,id(X),O) :- bind_variable(Ei,Eo,X,O),!.
 eval(Ei,Eo,p(P,A),O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var(E1,Eo,O,p(P,A1)).
 eval(E,E,lambda(X,Y),lambda(X,Y)) :-!. % this is here so when X is defined as call(disj...) 
@@ -64,16 +64,6 @@ eval(E,E,X,X) :- atomic(X),!.
 eval(E,E,X,X) :- string(X),!.
 eval(E,E,X,X) :- var(X),!.
 
-%eval_quote(+Expression,-Expression
-% I'm still not happy with the semantics of quote - should it behave differently
-% in evaluation/executable contexts?
-
-eval_quote(id(X),X) :- !.
-eval_quote([H|T], [Ho|To]) :-!, eval_quote(H,Ho),!, eval_quote(T,To),!.
-eval_quote(call(def,T), call(def,T)) :-!.
-eval_quote(call(H,T), call(H,To)) :-!, eval_quote(T,To),!.
-eval_quote(X,X) :- !.
-
 %eval_case(+Env,-Env,+Expression,+CaseList,-Result).
 %eval_case(_,_,A,T,_) :- writef("\ncase: [%w] [%w]\n",[A,T]),  fail.
 eval_case(E,E,_,[],[]).
@@ -108,7 +98,7 @@ eval_fun(P,S,call(disj,[A,B]),T,O) :- !, (eval_fun(P,S,A,T,O); \+ var(B),eval_fu
 % Bind the variables in the expression i.e replace id(X) with an actual variable
 bind_vars(E,E,X,X) :- var(X),!.
 bind_vars(E,Eo,id(X),O) :- !, bind_variable(E,Eo,X ,O),!.
-bind_vars(E,Eo,quote(X),Y) :- !, quote_unf(E,Eo,X,Y).
+bind_vars(E,E,call(quote,X),call(quote,X)) :-!.
 bind_vars(E,E,lambda(H,T), lambda(H,T)) :- !.
 bind_vars(E,E,call(def,T), call(def,T)) :- !.
 bind_vars(E,Eo,call(H,T), call(Ho,To)) :-!, bind_vars(E,E1,H,Ho),bind_vars(E1,Eo,T,To).
@@ -116,11 +106,6 @@ bind_vars(E,Eo,p(P,H),p(P,Ho)) :-!, bind_vars(E,Eo,H,Ho).
 bind_vars(E,Eo,block(X),O) :- !, eval_block(E,Eo,X,O).
 bind_vars(E,Eo,[H|T], [Ho|To]) :-!, bind_vars(E,E1,H,Ho), bind_vars(E1,Eo,T,To).
 bind_vars(E,E,X,X) :- !.
-
-quote_unf(E,E,id(X),X) :- !.
-quote_unf(E,Eo,[H|T], [Ho|To]) :-!, quote_unf(E,E1,H,Ho),!, quote_unf(E1,Eo,T,To),!.
-quote_unf(E,E,X,X) :- !.
-
 
 %bind_lambda_vars(+RecursiveName,+Environment,+Expr,-Expr,+BoundAlready,-BoundAlready)
 % bind the variables in a lambda expression
@@ -130,7 +115,6 @@ bind_lambda_vars(id(R),_,id(R),id('_rec'),V,V) :-!.
 bind_lambda_vars(_,_,id(X),id(X),V,V) :- member(X,V),!.
 bind_lambda_vars(_,E,id(X),O,V,V) :- defined(E,X,O),!. 
 bind_lambda_vars(_,_,id(X),id(X),V,[X|V]) :-!.
-bind_lambda_vars(_,_,quote(X),X,V,V) :- !.
 bind_lambda_vars(R,E,lambda(X,Y),lambda(Xo,Yo),V,V) :- 
     !,bind_lambda_vars(R,E,X,Xo,[],V1), append(V1,V,V2),!,bind_lambda_vars(R,E,Y,Yo,V2,_).
 bind_lambda_vars(_,E,call(def,[id(X),Y]),call(def,[id(X),Yo]),Vi,Vo) :- !,bind_lambda_vars(X,E,Y,Yo,Vi,Vo).
