@@ -2,15 +2,16 @@
 
 foo = "1 2 + 5 *"
 
-parse ~/^\d+:n \s* .*:t$/ :- {number n}, { once parse t}
-parse ~/^\+ \s* .*:t$/ :- "add",{once parse t}
-parse ~/^\* \s* .*:t$/ :- "mul",{once parse t}
+ops = [ "+",'add "*",'mul ]
+
 parse ~/^\s*$/ :- []
-parse x :- say "syntax error" and  fail
+parse ~/^\d+:n \s*$/ ++ t :- {number n}, { once parse t}
+parse ~/^.:o \s*$/ ++ t :- {o,f in ops; f,{once parse t}}
+parse x :- say "syntax error: " x and  fail
 
 exec [] it :- it
-exec "add",op a,b,it :- once exec op {a + b},it
-exec "mul",op a,b,it :- once exec op {a * b},it
+exec 'add,op a,b,it :- once exec op {a + b},it
+exec 'mul,op a,b,it :- once exec op {a * b},it
 exec i,op it :- once exec op i,it
 
 x is parse foo

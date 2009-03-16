@@ -3,6 +3,7 @@
 join(A,[],[A]) :- var(A),!.
 join(A,[],A) :- !.
 join(A,B,C) :- string(A), string(B), !, string_concat(A,B,C).
+join(A,B,C) :- string(A), !, append([p(any,A)],B,C).
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 to_list(S,L) :- string(S), string_to_list(S,L),!.
 

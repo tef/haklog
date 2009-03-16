@@ -48,7 +48,7 @@ eval(E,Eo,call(is,[A,B]),O) :- !,bind_vars(E,E1,A,O),!, eval(E1,Eo,B,O).
 eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1),!, bind_vars(unf,E1,E2,B,B1), !,unify(E2,Eo,A1,B1,O).
 eval(E,Eo,call(eq,[A,B]),O) :- !,bind_vars(eq,E,E1,A,A1),!, bind_vars(eq,E1,_,B,B1), !,unify(E,Eo,A1,B1,O).
 eval(E,Eo,call(concat,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,eval(E2,E3,A1,A2), eval(E3,Eo,B1,B2), concat(A2,B2,O).
-eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,eval(E1,Eo,B,A1).
+eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,bind_vars(E1,Eo,B,B1),!,member(A1,B1).
 eval(E,Eo,call(H,T),O) :-  \+ var(H),
     atom(H) -> (
         (builtin(H),!, eval(E,Eo,T,To), apply(H,To,O)); 
@@ -117,7 +117,7 @@ bind_vars(_,E,E,X,X) :- !.
 % bind the variables in a lambda expression
 bind_lambda_vars(_,_,id('_'),id('_'),V,V) :-!. 
 bind_lambda_vars(R,_,id(R),id('_rec'),V,V) :-!. 
-bind_lambda_vars(id(R),_,id(R),id('_rec'),V,V) :-!. 
+%bind_lambda_vars(id(R),_,id(R),id('_rec'),V,V) :-!. 
 bind_lambda_vars(_,_,id(X),id(X),V,V) :- member(X,V),!.
 bind_lambda_vars(_,E,id(X),O,V,V) :- defined(E,X,O),!. 
 bind_lambda_vars(_,_,id(X),id(X),V,[X|V]) :-!.
@@ -146,7 +146,7 @@ def_variable(E,[K-V|E],K,V):- !.
 %bind_variable(+Env,-Env,+Name,-Value)
 bind_variable(E,E,'_',_):- !.
 bind_variable(E,E,'_env',E):- !.
-bind_variable(E,E,K,V) :- defined(E,K,V),!.
+bind_variable(E,E,K,V) :- member(K-V,E),!.
 bind_variable(E,[K-V|E],K,V):- !.
 
 %builtin(+Name)
