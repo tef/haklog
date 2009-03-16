@@ -1,0 +1,33 @@
+#!/usr/bin/env haklog
+
+foo = "(* (+ 1 2) 3)"
+
+ops = ["+",'add "*",'mul]
+
+parsel x :- {
+    h,t is parsei x 
+    ho,to is parsel t
+    (h,ho),to
+}
+
+
+parsel x :- [],x
+
+parsei ~/^\($/ ++ t :- { ho,to is parsel t; to = ~/^\)$/ ++ o; ho,o}
+parsei ~/^\s+$/ ++ t :- once parsei t 
+parsei ~/^\d+:n$/ ++ t :- {number n}, t
+parsei ~/^ !\) .:o $/ ++ t :- o,f in ops and f,t
+
+
+execl [] :- []
+execl h,t :- {exec h},{execl t}
+
+exec [] :- []
+exec 'add,t :-t and {[a b] is execl t} and a + b
+exec 'mul,t :-t and {[a b] is execl t} and a + b
+exec x :- x
+
+x,_ is parsel foo
+say "input: " [x]
+y is  execl x 
+say "output: " y

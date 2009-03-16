@@ -4,7 +4,7 @@ evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
 % eval(+Environment,-Environment,+Expression,-Result)
 
-%eval(_,_,X,_) :-  writef("Eval: %w\n",[X]), fail.
+%eval(_,_,call(X,Y),_) :-  writef("Eval: call(%w,%w)\n",[X,Y]), fail.
 eval(E,E,X,X) :- var(X),!.
 eval(E,E,[],[]) :-!.
 eval(_,_,call(id(fail),_),_) :- !,fail.
@@ -49,7 +49,7 @@ eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1),!, bind_vars(unf,E1,E
 eval(E,Eo,call(eq,[A,B]),O) :- !,bind_vars(eq,E,E1,A,A1),!, bind_vars(eq,E1,_,B,B1), !,unify(E,Eo,A1,B1,O).
 eval(E,Eo,call(concat,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,eval(E2,E3,A1,A2), eval(E3,Eo,B1,B2), concat(A2,B2,O).
 eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,bind_vars(E1,Eo,B,B1),!,member(A1,B1).
-eval(E,Eo,call(H,T),O) :-  \+ var(H),
+eval(E,Eo,call(H,T),O) :-  \+ var(H), 
     atom(H) -> (
         (builtin(H),!, eval(E,Eo,T,To), apply(H,To,O)); 
         (!,defined(E,H,F),!,eval(E,Eo,call(F,T),O))
@@ -92,7 +92,7 @@ eval_conj(E,Eo,[H|T],_,X) :-  eval(E,E1,H,O), eval_conj(E1,Eo,T,O,X).
 %eval_fun(+ParentEnv, +StartEnv, +FunctionDef, +FunctionArgs, -Output)
 % evaluate against a given list of functions
 
-eval_fun(P,S,lambda(A,C),T,O) :-!,bind_vars(S,E1,A,A1),!, unify(E1,Eo,A1,T,_), eval_block(['_'-P|Eo],_,C,O).
+eval_fun(P,S,lambda(A,C),T,O) :-!,bind_vars(S,E1,A,A1),!, unify(E1,Eo,A1,T,_),eval_block(['_'-P|Eo],_,C,O).
 eval_fun(P,S,call(disj,[A,B]),T,O) :- !, (eval_fun(P,S,A,T,O); \+ var(B),eval_fun(P,S,B,T,O)).
 
 

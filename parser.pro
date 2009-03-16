@@ -26,7 +26,7 @@ chars([H|T]) --> [H], chars(T).
 escapes(O) --> "\"", {append("\"",T,O)},chars(T).
 escapes(O) --> "n", {append("\n",T,O)},chars(T).
 escapes(O) --> "t", {append("\t",T,O)},chars(T).
-escapes(O) --> nl, chars(O).
+escapes(O) --> newline, chars(O).
 
 ws0 --> [X], {code_type(X, white)}, ws.
 ws --> ws0.
@@ -179,7 +179,7 @@ regexop(zany) -->!.
 regexop(choice) -->!.
 
 infix(def, right, 99) --> ":-".
-infix(is, right, 98) --> "is".
+infix(is, right, 94) --> "is".
 infix(ifthen,left,85) --> "->".
 infix(le, right,60) --> ">=".
 infix(eq, right,60) --> "==".
@@ -215,8 +215,8 @@ postfix(maybe,4) --> "?", \+"?".
 prefix(isnt,4) --> "!".
 prefix(ahead,4) --> "&", \+ "&".
  
-prefix(not,94) --> "not" ,ws.
-prefix(once,94) --> "once",ws.
+prefix(not,93) --> "not" ,ws.
+prefix(once,93) --> "once",ws.
 prefix(quote,5) --> "'".
 prefix(eval,5) --> "`".
 
