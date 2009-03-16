@@ -142,7 +142,7 @@ unify_p(class,E,E,L,R,R) :- !,class_match(L,R).
 unify_p(crange,E,E,L,R,R) :- !,crange_match(L,R).
 
 %unify_p_l(+Pattern,+Env,-Env,+Args,+LeftTail,+Right,-Capture)
-unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- var(L1), iterable_head_tail(R,Rh,Rt), !, unify(E,E1,L1,Rh,O),unify(E1,E2,Lt,Rt,_),unify_var(E2,Eo,L2,O).
+unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- var(L1),!, iterable_head_tail(R,Rh,Rt), !, unify(E,E1,L1,Rh,O),unify(E1,E2,Lt,Rt,_),unify_var(E2,Eo,L2,O).
 unify_p_l(bind,E,Eo,[p(P,A),N],Lt,R,C):- var(R), (R = [H|_] -> \+var(H); []),!,unify_p_l(P,E,E1,A,Lt,R,C),unify(E1,Eo,N,C,_).
 unify_p_l(bind,E,Eo,[p(P,A),N],Lt,[p(Pr,Ar)|T],[Po|To]):-  pattern_combine(P,Pr,A,Ar,Po),!,unify(E,E1,A,Lt,T,To), unify(E1,Eo,N,Po,_).
 unify_p_l(bind,E,Eo,[p(P,A),N],Lt,R,C):- pattern_eats(P,R),!,unify_p_l(P,E,E1,A,Lt,R,C),unify(E1,Eo,N,C,_).

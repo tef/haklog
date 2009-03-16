@@ -30,6 +30,7 @@ bugs:
     isn't should match with empty list
     move reserved words into parser.
     test #! mechanism
+    .:x matches against []Â§
 
 housekeeping:
     pretty printer
