@@ -13,7 +13,7 @@ exec "add",op a,b,it :- once exec op {a + b},it
 exec "mul",op a,b,it :- once exec op {a * b},it
 exec i,op it :- once exec op i,it
 
-x = {parse foo}
+x is parse foo
 say "input: " x
-y = {exec x []}
+y is exec x []
 say "output: " y

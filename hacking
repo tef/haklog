@@ -23,6 +23,7 @@ next:
 
     length patterns
     numerical ranges
+    :=
     
 bugs:
     iron out bugs in unification with patterns

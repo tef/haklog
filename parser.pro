@@ -179,6 +179,7 @@ regexop(zany) -->!.
 regexop(choice) -->!.
 
 infix(def, right, 99) --> ":-".
+infix(is, right, 98) --> "is".
 infix(ifthen,left,85) --> "->".
 infix(le, right,60) --> ">=".
 infix(eq, right,60) --> "==".
