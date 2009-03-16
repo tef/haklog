@@ -44,7 +44,7 @@ eval(E,Eo,call(close,[S]),[]) :- !, bind_vars(E,Eo,S,St), !, close_(St).
 eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Yo,[],_), eval(E,Eo,Yo,Z).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
-eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,unify(E2,Eo,A1,B1,O).
+eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1),!, bind_vars(unf,E1,E2,B,B1), !,unify(E2,Eo,A1,B1,O).
 eval(E,Eo,call(concat,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,eval(E2,E3,A1,A2), eval(E3,Eo,B1,B2), concat(A2,B2,O).
 eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,eval(E1,Eo,B,A1).
 eval(E,Eo,call(H,T),O) :-  \+ var(H),
@@ -94,18 +94,21 @@ eval_fun(P,S,lambda(A,C),T,O) :-!,bind_vars(S,E1,A,A1),!, unify(E1,Eo,A1,T,_), e
 eval_fun(P,S,call(disj,[A,B]),T,O) :- !, (eval_fun(P,S,A,T,O); \+ var(B),eval_fun(P,S,B,T,O)).
 
 
-%bind_vars(+Env,-Env,+Expr,-Expr)
+bind_vars(E,Eo,A,B) :- bind_vars(eval,E,Eo,A,B).
+%bind_vars(+Eval,+Env,-Env,+Expr,-Expr)
 % Bind the variables in the expression i.e replace id(X) with an actual variable
-bind_vars(E,E,X,X) :- var(X),!.
-bind_vars(E,Eo,id(X),O) :- !, bind_variable(E,Eo,X ,O),!.
-bind_vars(E,E,call(quote,X),call(quote,X)) :-!.
-bind_vars(E,E,lambda(H,T), lambda(H,T)) :- !.
-bind_vars(E,E,call(def,T), call(def,T)) :- !.
-bind_vars(E,Eo,call(H,T), call(Ho,To)) :-!, bind_vars(E,E1,H,Ho),bind_vars(E1,Eo,T,To).
-bind_vars(E,Eo,p(P,H),p(P,Ho)) :-!, bind_vars(E,Eo,H,Ho).
-bind_vars(E,Eo,block(X),O) :- !, eval_block(E,Eo,X,O).
-bind_vars(E,Eo,[H|T], [Ho|To]) :-!, bind_vars(E,E1,H,Ho), bind_vars(E1,Eo,T,To).
-bind_vars(E,E,X,X) :- !.
+bind_vars(_,E,E,X,X) :- var(X),!.
+bind_vars(_,E,Eo,id(X),O) :- !, bind_variable(E,Eo,X ,O),!.
+bind_vars(_,E,E,call(quote,X),call(quote,X)) :-!.
+bind_vars(_,E,E,lambda(H,T), lambda(H,T)) :- !.
+bind_vars(_,E,E,call(def,T), call(def,T)) :- !.
+bind_vars(M,E,Eo,call(H,T), call(Ho,To)) :-!, bind_vars(M,E,E1,H,Ho),bind_vars(m,E1,Eo,T,To).
+bind_vars(M,E,Eo,[p(P,H)|T],R) :- bind_vars(M,E,Ei,H,H1),unify_var_p_l(P,Ei,E1,H1,Ho),!,bind_vars(M,E1,Eo,T,To), join(Ho,To,R).
+bind_vars(M,E,Eo,p(P,H),R) :- bind_vars(M,E,E1,H,H1), unify_var_p(P,E1,Eo,H1,R),!.
+bind_vars(M,E,Eo,p(P,H),p(P,Ho)) :-!, bind_vars(M,E,Eo,H,Ho).
+bind_vars(eval,E,Eo,block(X),O) :- !, eval_block(E,Eo,X,O).
+bind_vars(M,E,Eo,[H|T], [Ho|To]) :-!, bind_vars(M,E,E1,H,Ho), bind_vars(M,E1,Eo,T,To).
+bind_vars(_,E,E,X,X) :- !.
 
 %bind_lambda_vars(+RecursiveName,+Environment,+Expr,-Expr,+BoundAlready,-BoundAlready)
 % bind the variables in a lambda expression

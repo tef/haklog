@@ -107,7 +107,7 @@ exprn(O,N1) --> "(" ,!, ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
 exprn(O,N1) --> "[" ,!, ws,  block(Op, 90), ws, "]" , follow(Op, O ,N1).
 exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow(block(Op), O ,N1).
 exprn(O,N1) --> "~/" ,!, regex(R,100), "/" , follow(R, O ,N1).
-exprn(O,N1) --> prefix(Op, N),!, { N =< N1 }, ws, exprn(R,N), !, build(Op,R,Z), follow(Z, O, N1).
+exprn(O,N1) --> prefix(Op, N),!, { N =< N1 }, exprn(R,N), !, build(Op,R,Z), follow(Z, O, N1).
 exprn(O,N1) --> \+ infix(_,_,_), %\+ postfix(_,_),
                 identifier(X), !, idfollow(O,X,N1). 
 exprn(O,N) --> item(L), !, follow(L,O,N).
@@ -181,7 +181,7 @@ infix(bind,left,75) --> ":".
 infix(where,left,97) --> "where".
 infix(concat,right,57) --> "++".
 infix(add,right,50) --> "+".
-infix(sub,right,50) --> "-".
+infix(sub,right,50) --> "-", ws0.
 infix(mul,right,45) --> "*".
 infix(div,right,45) --> "/".
 infix(conj,right,95) --> "&&". 
@@ -202,8 +202,8 @@ postfix(maybe,4) --> "?", \+"?".
 prefix(isnt,4) --> "!".
 prefix(ahead,4) --> "&", \+ "&".
  
-prefix(not,94) --> "not".
-prefix(once,94) --> "once".
+prefix(not,94) --> "not" ,ws.
+prefix(once,94) --> "once",ws.
 prefix(quote,5) --> "'".
 prefix(eval,5) --> "`".
 

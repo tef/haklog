@@ -31,8 +31,8 @@ unify(E,Eo,L,call(unf,A),C) :-!,eval(E,E1,call(unf,A),O),unify(E1,Eo,L,O,C).
 unify(E,Eo,call(unf,A),R,C) :-!,eval(E,E1,call(unf,A),O),unify(E1,Eo,O,R,C).
 
 unify(E,Eo,[p(Pl,Al)|Lt],[p(Pr,Ar)|Rt],[p(Po,Ao)|Ot]) :- pattern_combine(Pl,Pr,Po), arguments_combine(Al,Ar,Ao), !, Al=Ar, unify(E,Eo,Lt,Rt,Ot).
-unify(E,Eo,[p(P,A)|Lt],Ro,R) :- \+var(A), pattern_eats(P,Ro), !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
-unify(E,Eo,Lo,[p(P,A)|Rt],L) :- \+var(A), pattern_eats(P,Lo), !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,_).
+unify(E,Eo,[p(P,A)|Lt],Ro,R) :- pattern_eats(P,Ro), !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
+unify(E,Eo,Lo,[p(P,A)|Rt],L) :- pattern_eats(P,Lo), !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,_).
 unify(E,Eo,p(P,A),Ro,O) :-  !, unify_var(E,E1,R,Ro), unify_p(P,E1,Eo,A,R,O).
 unify(E,Eo,Lo,p(P,A),O) :-  !, unify_var(E,E1,L,Lo), unify_p(P,E1,Eo,A,L,O).
 
@@ -153,9 +153,14 @@ unify_p_l(any,E,Eo,_,To,R,C) :- empty(R,C), unify(E,Eo,To,R,_).
 
 unify_p_l(zany,E,Eo,A,To,R,C) :- (var(A); iterable_pair(A,R); null(A), null(R)),!,iterable_zany(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
 
+unify_p_l(zany,E,Eo,_,To,R,C) :- empty(R,C), unify(E,Eo,To,R,_).
+unify_p_l(zany,E,Eo,A,To,R,C) :- iterable_head_tail(R,Rh,Rt),!, unify(E,E1,A,Rh,Ch), unify_p_l(zany,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct).
 unify_p_l(some,E,Eo,A,To,R,C) :- (var(A);iterable_pair(A,R)),!,iterable_some(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
 
+unify_p_l(some,E,Eo,A,To,R,C) :- iterable_head_tail(R,Rh,Rt),!, unify(E,E1,A,Rh,Ch), unify_p_l(any,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct).
+
 unify_p_l(zsome,E,Eo,A,To,R,C) :- (var(A);iterable_pair(A,R)),!,iterable_zsome(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
+unify_p_l(zsome,E,Eo,A,To,R,C) :- iterable_head_tail(R,Rh,Rt),!, unify(E,E1,A,Rh,Ch), unify_p_l(zany,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct).
 
 unify_p_l(maybe,E,Eo,A,T,R,H) :- iterable_head_tail(R,H,To), unify(E,E1,A,H,_), unify(E1,Eo,T,To,_).
 unify_p_l(maybe,E,Eo,_,T,To,_):- unify(E,Eo,T,To,_).

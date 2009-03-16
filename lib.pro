@@ -1,5 +1,6 @@
 % miscelaneous  list and general functions
 
+join(A,[],[A]) :- var(A),!.
 join(A,[],A) :- !.
 join(A,B,C) :- string(A), string(B), !, string_concat(A,B,C).
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
