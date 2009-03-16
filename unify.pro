@@ -25,14 +25,15 @@ unify(E,E,[],[],[]) :- !.
 unify(_,_,[],[H|_],_) :- var(H) , !, fail.
 unify(_,_,[H|_],[],_) :- var(H) , !, fail.
 
+unify(E,Eo,[Pa|Lt],[Pb|Rt],[p(Po,Ao)|Ot]) :- \+var(Pa), Pa = p(Pl,Al),\+var(Pb), Pb = p(Pr,Ar), pattern_combine(Pl,Pr,Po), arguments_combine(Al,Ar,Ao), !, Al=Ar, unify(E,Eo,Lt,Rt,Ot).
+unify(E,Eo,[Pa|Lt],Ro,R) :- \+var(Pa), Pa = p(P,A), pattern_eats(P,Ro), !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
+unify(E,Eo,Lo,[Pa|Rt],L) :- \+var(Pa), Pa = p(P,A), pattern_eats(P,Lo), !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,_).
+
 unify(E,Eo,L,R,O) :- iterable_pair(L,R), iterable_head_tail(L,Lh,Lt), iterable_head_tail(R,Rh,Rt),( (var(Lh),!,unify_var(E,E1,Lh,Rh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Lh,Ot)); (var(Rh),!,unify_var(E,E1,Rh,Lh), unify(E1,Eo,Lt,Rt,Ot), iterable_head_tail(O,Rh,Ot))).
 
 unify(E,Eo,L,call(unf,A),C) :-!,eval(E,E1,call(unf,A),O),unify(E1,Eo,L,O,C).
 unify(E,Eo,call(unf,A),R,C) :-!,eval(E,E1,call(unf,A),O),unify(E1,Eo,O,R,C).
 
-unify(E,Eo,[p(Pl,Al)|Lt],[p(Pr,Ar)|Rt],[p(Po,Ao)|Ot]) :- pattern_combine(Pl,Pr,Po), arguments_combine(Al,Ar,Ao), !, Al=Ar, unify(E,Eo,Lt,Rt,Ot).
-unify(E,Eo,[p(P,A)|Lt],Ro,R) :- pattern_eats(P,Ro), !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
-unify(E,Eo,Lo,[p(P,A)|Rt],L) :- pattern_eats(P,Lo), !, unify_var(E,E1,L,Lo), unify_p_l(P,E1,Eo,A,Rt,L,_).
 unify(E,Eo,p(P,A),Ro,O) :-  !, unify_var(E,E1,R,Ro), unify_p(P,E1,Eo,A,R,O).
 unify(E,Eo,Lo,p(P,A),O) :-  !, unify_var(E,E1,L,Lo), unify_p(P,E1,Eo,A,L,O).
 
@@ -58,6 +59,8 @@ pattern_combine(zany,any,any).
 pattern_combine(maybe,zmaybe,maybe).
 pattern_combine(zmaybe,maybe,maybe).
 
+pattern_eats(_,V) :- var(V) ,!, fail.
+pattern_eats(_,[V|_]) :- var(V) ,!.
 pattern_eats(bind,_).
 pattern_eats(_,[p(bind,_)|_]) :- !, fail.
 pattern_eats(any,_).
