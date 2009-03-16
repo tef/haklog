@@ -78,6 +78,10 @@ rx_class(O) --> "\\",!, rxescapes(O).
 rx_class(O) --> csym_(A), "-", csym_(B),!, rxbuild(crange,A,B,O).
 rx_class(O) --> [L], {string_to_atom([L],O)}.
 
+rxex(R,_) --> identifier(Ri),!,idbuild(Ri,R).
+rxex(R,_) --> item(R),!.
+rxex(block(Op),_) --> "{" ,!, ws, block(Op, 100), ws, "}",!.
+
 rx(_,_) --> ("/";")";"]";"$"),!,{fail}.
 rx(O,N1) --> "(" ,!, ws,  rx(Op, 100), ws, ")" , rxfollow(Op, O ,N1).
 rx(O,N1) --> "[^" ,!, ws,  class_list(Op), ws, "]", rxbuild(choice,Op,Z), rxbuild(isnt,Z,Z1),  rxfollow(Z1, O ,N1).
@@ -94,6 +98,9 @@ rxescapes(O) --> [X], {member(X,"wWsSdD"), string_to_atom([X],A)},!,rxbuild(clas
 
 
 rxfollow(L,O,N1) --> ((postfix(Op,N), regexop(Op)) -> {N =< N1}), !, rxbuild(Op,L,Z), rxfollow(Z, O, N1).
+rxfollow(L,O,N1) --> ws, ((infix(bind,As,N)) -> {assoc(As,N, N1)}), !,ws, rxex(R,N),!, rxbuild(bind,L,R,Z), rxfollow(Z, O, N1).
+rxfollow(L,O,N1) --> ws, ((infix(exactly,As,N)) -> {assoc(As,N, N1)}), !,ws, rxex(R,N),!, rxbuild(exactly,L,R,Z), rxfollow(Z, O, N1).
+rxfollow(L,O,N1) --> ws, ((infix(zexactly,As,N)) -> {assoc(As,N, N1)}), !,ws, rxex(R,N),!, rxbuild(zexactly,L,R,Z), rxfollow(Z, O, N1).
 rxfollow(L,O,N1) --> ws, ((infix(Op,As,N),regexop(Op)) -> {assoc(As,N, N1)}), !,ws, rx(R,N),!, rxbuild(Op,L,R,Z), rxfollow(Z, O, N1).
 rxfollow(O,O,_) --> !.
 
@@ -137,14 +144,17 @@ rxbuild(N,p(N,[])) --> !.
 rxbuild(choice,X,p(choice,X)) --> !.
 rxbuild(class,X,p(class,X)) --> !.
 rxbuild(P,R,L) --> build(P,R,L).
-rxbuild(bind,L,R,p(bind,[L,id(R)])) --> atom(R),!.
 rxbuild(bind,L,R,p(bind,[L,R])) --> !.
+rxbuild(exactly,L,R,p(exactly,[L,R])) --> !.
+rxbuild(zexactly,L,R,p(zexactly,[L,R])) --> !.
 rxbuild(crange,L,R,p(crange,[L,R])) --> !.
 rxbuild(P,R,L,O) --> build(P,R,L,O).
 build(any,R,p(any,R)) --> !.
+build(exactly,R,p(exactly,R)) --> !.
 build(some,R,p(some,R)) --> !.
 build(maybe,R,p(maybe,R)) --> !.
 build(zany,R,p(zany,R)) --> !.
+build(zexactly,R,p(zexactly,R)) --> !.
 build(zsome,R,p(zsome,R)) --> !.
 build(zmaybe,R,p(zmaybe,R)) --> !.
 build(ahead,R,p(ahead,R)) --> !.
@@ -165,7 +175,6 @@ regexop(maybe) -->!.
 regexop(zmaybe) -->!.
 regexop(any) -->!.
 regexop(zany) -->!.
-regexop(bind) -->!.
 regexop(choice) -->!.
 
 infix(def, right, 99) --> ":-".
@@ -191,6 +200,8 @@ infix(choice,right,56) --> "|".
 infix(or,right,96) --> "or".
 infix(xor,right,96) --> "xor".
 infix(in,right,60) --> "in".
+infix(zexactly,right,3) --> "^?".
+infix(exactly,right,3) --> "^".
 
 postfix(zany,4) --> "*?".
 postfix(zsome,4) --> "+?".
