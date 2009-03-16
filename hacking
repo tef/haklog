@@ -13,6 +13,14 @@ done:
     patterns in strings
     regex character classes and ranges
     ++ is append
+    pattern composition
+    == is equality does not instanciate variables
+    
+
+next:
+
+    length patterns
+    numerical ranges
     
 bugs:
     iron out bugs in unification with patterns

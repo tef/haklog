@@ -6,6 +6,9 @@ join(A,B,C) :- string(A), string(B), !, string_concat(A,B,C).
 join(A,B,C) :- append(A,B,C),!;append([A],B,C).
 to_list(S,L) :- string(S), string_to_list(S,L),!.
 
+iter_length(X,L) :- list(X),!, length(X,L).
+iter_length(X,L) :- string(X),!, string_length(X,L).
+
 expr_to_string(S,S) :- string(S),!.
 expr_to_string(V,S) :- \+var(V), V = [], string_to_list(S,[]).
 expr_to_string(I,S) :- atom(I), string_to_atom(S,I),!.
@@ -52,6 +55,13 @@ iterable_head_tail(fd(I), H,O) :- \+var(I),!,read_(fd(I),H1),!,expr_to_string(H1
 iterable_head_tail([H|T],H,T) :-!.
 
 iterable_some(I,O,Lo) :- iterable_head_tail(I,H,T), iterable_any(T,To,Lo), iterable_head_tail(O,H,To).
+
+iterable_take(I,O,Lo,N) :- iterable_head_tail(I,H,T),iterable_take(T,To,Lo,N1),!, (N is N1+1,iterable_head_tail(O,H,To); N is O, Lo = I, empty(I,O)). 
+iterable_take(I,E,I,0) :- empty(I,E).
+
+iterable_ztake(I,E,I,0) :- empty(I,E).
+iterable_ztake(I,O,Lo,N) :- iterable_head_tail(I,H,T),iterable_ztake(T,To,Lo,N1), iterable_head_tail(O,H,To), N is N1+1.
+
 iterable_any(I,O,Lo) :- iterable_head_tail(I,H,T),iterable_any(T,To,Lo), iterable_head_tail(O,H,To).
 iterable_any(I,E,I) :- empty(I,E).
 
@@ -64,6 +74,7 @@ list([]). list([_|_]).
 
 empty([],[]) :-!.
 empty([_|_],[]) :-!.
+empty(fd(_),[]) :-!.
 empty(S,S0) :- string(S),!,string_to_list(S0,[]).
 null(X) :- \+var(X) , (X=[]; (string(X), string_length(X,0))),!.
 notnull(X) :- !, (var(X),!; X=[_|_],!; string(X),!, \+string_length(X,0); X = fd(I), ground(I)).

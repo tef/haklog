@@ -65,6 +65,10 @@ pattern_eats(_,V) :- var(V) ,!, fail.
 pattern_eats(_,[V|_]) :- var(V) ,!.
 pattern_eats(bind,_).
 pattern_eats(_,[p(bind,_)|_]) :- !, fail.
+pattern_eats(take,_).
+pattern_eats(_,[p(take,_)|_]) :- !, fail.
+pattern_eats(ztake,_).
+pattern_eats(_,[p(ztake,_)|_]) :- !, fail.
 pattern_eats(any,_).
 pattern_eats(_,[p(any,_)|_]) :- !, fail.
 pattern_eats(zany,_).
@@ -117,10 +121,12 @@ unify_var_p(P,E,Eo,X,R) :- !, unify_var_p_l(P,E,Eo,X,R).
 
 % 
 unify_var_p_l(P,E,E,X,[p(P,X)]) :- var(X),!.
-unify_var_p_l(bind,E,Eo,[L1,L2],R) :-   !, unify_var(E,E1,R,L1), unify_var(E1,Eo,L2,R).
+%unify_var_p_l(bind,E,Eo,[L1,L2],R) :-   !, unify_var(E,E1,R,L1), unify_var(E1,Eo,L2,R).
 unify_var_p_l(choice,E,Eo,[L1|L2],R) :-   !, (unify_var(E,Eo,R,L1); unify_var_p_l(choice,E,Eo,L2,R)).
 unify_var_p_l(ahead,E,E,X,[p(ahead,X)]) :- !.
 unify_var_p_l(isnt,E,E,X,[p(isnt,X)]) :- !.
+unify_var_p_l(take,E,Eo,[L,N],R) :-   unify_p_l(take,E,E1,[_,N],[],L,L1),!,unify_var(E1,Eo,R,L1).
+unify_var_p_l(ztake,E,Eo,[L,N],R) :-   unify_p_l(ztake,E,E1,[_,N],[],L,L1),!,unify_var(E1,Eo,R,L1).
 unify_var_p_l(any,E,Eo,L,R) :-   unify_p_l(any,E,E1,_,[],L,L1),!,unify_var(E1,Eo,R,L1).
 unify_var_p_l(zany,E,Eo,L,R) :-   unify_p_l(zany,E,E1,_,[],L,L1),!,unify_var(E1,Eo,R,L1).
 unify_var_p_l(some,E,Eo,L,R) :-   unify_p_l(some,E,E1,_,[],L,L1),!,unify_var(E1,Eo,R,L1).
@@ -137,7 +143,11 @@ unify_p(class,E,E,L,R,R) :- !,class_match(L,R).
 unify_p(crange,E,E,L,R,R) :- !,crange_match(L,R).
 
 %unify_p_l(+Pattern,+Env,-Env,+Args,+LeftTail,+Right,-Capture)
-unify_p_l(bind,E,Eo,[X,N],Lt,R,C):- \+var(X), X=p(P,A),!,unify_p_l(P,E,E1,A,Lt,R,C),unify(E1,Eo,N,C,_).
+unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- var(L1), iterable_head_tail(R,Rh,Rt), !, unify(E,E1,L1,Rh,O),unify(E1,E2,Lt,Rt,_),unify_var(E2,Eo,L2,O).
+unify_p_l(bind,E,Eo,[p(P,A),N],Lt,R,C):- var(R), (R = [H|_] -> \+var(H); []),!,unify_p_l(P,E,E1,A,Lt,R,C),unify(E1,Eo,N,C,_).
+unify_p_l(bind,E,Eo,[p(P,A),N],Lt,[p(Pr,Ar)|T],[Po|To]):-  pattern_combine(P,Pr,A,Ar,Po),!,unify(E,E1,A,Lt,T,To), unify(E1,Eo,N,Po,_).
+unify_p_l(bind,E,Eo,[p(P,A),N],Lt,R,C):- pattern_eats(P,R),!,unify_p_l(P,E,E1,A,Lt,R,C),unify(E1,Eo,N,C,_).
+unify_p_l(bind,E,Eo,[L1,N],Lt,[p(P,A)|T],C):- L = [L1|Lt], pattern_eats(P,L),!,unify_p_l(P,E,E1,A,T,L,C),unify(E1,Eo,N,C,_).
 unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- iterable_head_tail(R,Rh,Rt), !, unify(E,E1,L1,Rh,O),unify(E1,E2,Lt,Rt,_),unify_var(E2,Eo,L2,O).
 
 unify_p_l(choice,E,Eo,[X|L2],Lt,R,C):- \+var(X), X=p(P,A),!,((unify_p_l(P,E,Eo,A,Lt,R,C)) ; (unify_p_l(choice,E,Eo,L2,Lt,R,C))).
@@ -151,15 +161,18 @@ unify_p_l(ahead,E,Eo,L,Lt,R,O) :- iterable_head_tail(R,Rh,_),!,unify(E,E1,L,Rh,O
 unify_p_l(isnt,E,Eo,L,Lt,R,Rh) :- iterable_head_tail(R,Rh,_), !,\+ unify(E,_,L,Rh,_),!,unify(E,Eo,Lt,R,_).
 
 % here we have one rule for any on a variable or an iterable
+unify_p_l(take,E,Eo,[A,B],To,R,C) :- unify_var(E,E1,A1,B), (var(A1),!, unify_p_l(any,E1,Eo,A,To,R,C), iter_length(C,A1); number(A1),iterable_take(R,C,Rt,A1), unify(E1,Eo,To,Rt,_)).
+unify_p_l(ztake,E,Eo,[A,B],To,R,C) :- unify_var(E,E1,A1,B), (var(A1),!, unify_p_l(zany,E1,Eo,A,To,R,C), iter_length(C,A1); number(A1),iterable_ztake(R,Rh,Rt,A1), !, unify(E1,E2,A,Rh,C),unify(E2,Eo,To,Rt,_)).
+
 unify_p_l(any,E,Eo,A,To,R,C) :- (var(A); iterable_pair(A,R); null(A),null(R)),!,iterable_any(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
 % and another for matching things like 1*
-unify_p_l(any,E,Eo,A,To,R,C) :- iterable_head_tail(R,Rh,Rt),!, unify(E,E1,A,Rh,Ch), unify_p_l(any,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct).
+unify_p_l(any,E,Eo,A,To,R,C) :- iterable_head_tail(R,Rh,Rt), unify(E,E1,A,Rh,Ch), unify_p_l(any,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct).
 unify_p_l(any,E,Eo,_,To,R,C) :- empty(R,C), unify(E,Eo,To,R,_).
 
 unify_p_l(zany,E,Eo,A,To,R,C) :- (var(A); iterable_pair(A,R); null(A), null(R)),!,iterable_zany(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
 
 unify_p_l(zany,E,Eo,_,To,R,C) :- empty(R,C), unify(E,Eo,To,R,_).
-unify_p_l(zany,E,Eo,A,To,R,C) :- iterable_head_tail(R,Rh,Rt),!, unify(E,E1,A,Rh,Ch), unify_p_l(zany,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct).
+unify_p_l(zany,E,Eo,A,To,R,C) :- iterable_head_tail(R,Rh,Rt), unify(E,E1,A,Rh,Ch), unify_p_l(zany,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct).
 unify_p_l(some,E,Eo,A,To,R,C) :- (var(A);iterable_pair(A,R)),!,iterable_some(R,Rh,Rt) , unify(E,E1,A,Rh,C), unify(E1,Eo,To,Rt,_).
 
 unify_p_l(some,E,Eo,A,To,R,C) :- iterable_head_tail(R,Rh,Rt),!, unify(E,E1,A,Rh,Ch), unify_p_l(any,E1,Eo,A,To,Rt,Ct), iterable_head_tail(C,Ch,Ct).
