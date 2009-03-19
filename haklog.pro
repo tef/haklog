@@ -48,6 +48,7 @@ read_file(I,Li,Lo) :-  get_byte(I,C), ((C = -1,!,Lo=[]); Lo=[C|L1], read_file(I,
 % featuring world most useful error messages
 exec(X,E,O) :- 
     (parse(X,S);write('Syntax Error'),nl,fail),!,
+%    write(S), nl,
     reserved(R),
     make_environment(R,E1),
     (eval(E1,E,S,O) *->hprint(O);write('Runtime Error'),nl,fail).

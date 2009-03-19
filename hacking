@@ -17,20 +17,22 @@ done:
     == is equality does not instanciate variables
     x^l is x* , l = length(x)
     x^? is the non greedy version
+    x is y 
     
 
 next:
 
-    length patterns
-    numerical ranges
-    := 
+    numerical ranges with ..
+    := ?
+    move patterns into own operator =~ out of =
+    add ==~
     
 bugs:
     iron out bugs in unification with patterns
     isn't should match with empty list
     move reserved words into parser.
-    test #! mechanism
-    .:x matches against []Â§
+    f: use env - test #! mechanism
+    f: .:x matches against []Â§
 
 housekeeping:
     pretty printer

@@ -27,7 +27,7 @@ exec 'add,t :-t and {[a b] is execl t} and a + b
 exec 'mul,t :-t and {[a b] is execl t} and a + b
 exec x :- x
 
-x,_ is parsel foo
-say "input: " [x]
+x,t is parsel foo
+say "input: " [x] " tail " [t]
 y is  execl x 
 say "output: " y
