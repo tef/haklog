@@ -42,7 +42,7 @@ eval(E,Eo,call(read,[S|T]),Z) :- !, bind_vars(E,E1,S,St), !, read_(St,X), !,eval
 eval(E,Eo,call(open,[S]),Z) :- !, bind_vars(E,Eo,S,St), !, open_(St,Z).
 eval(E,Eo,call(close,[S]),[]) :- !, bind_vars(E,Eo,S,St), !, close_(St).
 eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Yo,[],_), eval(E,Eo,Yo,Z).
-eval(E,Eo,call(every,X),Z) :- !,findall(A,eval_block(E,Eo,X,A),Z),!.
+eval(E,Eo,call(every,X),Z) :- !,findall(A,eval(E,Eo,X,A),Z),!.
 eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
 eval(E,Eo,call(is,[A,B]),O) :- !,bind_vars(E,E1,A,O),!, eval(E1,Eo,B,O).
 eval(E,Eo,call(match,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1),!, bind_vars(unf,E1,E2,B,B1), !,unify(pat,E2,Eo,A1,B1,O).

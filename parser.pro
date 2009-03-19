@@ -204,7 +204,7 @@ infix(gt,right,60) --> ">".
 infix(lt,right,60) --> "<".
 infix(cons,right,55) --> ",".
 infix(bind,left,75) --> ":".
-infix(where,left,97) --> "where".
+infix(where,left,93) --> "where".
 infix(concat,right,57) --> "++".
 infix(add,right,50) --> "+".
 infix(sub,right,50) --> "-", ws0.
@@ -230,8 +230,9 @@ postfix(maybe,4) --> "?", \+"?".
 prefix(isnt,4) --> "!".
 prefix(ahead,4) --> "&", \+ "&".
  
-prefix(not,93) --> "not" ,ws.
-prefix(once,93) --> "once",ws.
+prefix(every,94) --> "every" ,ws.
+prefix(once,94) --> "once",ws.
+prefix(not,94) --> "not",ws.
 prefix(quote,5) --> "'".
 prefix(neg,5) --> "-".
 prefix(eval,5) --> "`".
