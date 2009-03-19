@@ -166,6 +166,7 @@ build(cons,L,R,[L|R]) --> !.
 build(pair,L,R,[L,R]) --> !.
 build(bind,L,R,p(bind,[L,R])) --> !.
 build(choice,L,R,p(choice,[L,R])) --> !.
+build(matchr,L,R,call(match,[R,L])) --> !.
 build(C,L,R,call(C,[L,R])) --> !.
 
 regexop(isnt) -->!.
@@ -180,7 +181,8 @@ regexop(choice) -->!.
 
 infix(def, right, 99) --> ":-".
 infix(is, right, 94) --> "is".
-infix(match, left, 81) --> "~=".
+infix(match, right, 81) --> "~=".
+infix(matchr, left, 82) --> "=~".
 infix(ifthen,left,85) --> "->".
 infix(le, right,60) --> ">=".
 infix(eq, right,60) --> "==".
