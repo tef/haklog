@@ -172,6 +172,8 @@ build(zsome,R,p(zsome,R)) --> !.
 build(zmaybe,R,p(zmaybe,R)) --> !.
 build(ahead,R,p(ahead,R)) --> !.
 build(isnt,R,p(isnt,R)) --> !.
+build(quote,id(R),R) --> !.
+build(quote,R,R) --> {atom(R)},!.
 build(C,R,call(C,R)) --> !.
 build(concat,L,R,[p(any,L), p(any,R)]) --> !.
 build(cons,L,R,[L|R]) --> !. 

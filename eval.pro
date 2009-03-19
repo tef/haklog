@@ -11,9 +11,9 @@ eval(_,_,call(id(fail),_),_) :- !,fail.
 eval(_,_,fail,_) :- !,fail.
 eval(E,E,trace,[]) :- !,trace.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
-eval(E,Eo,call(quote,X), X0) :- !,bind_vars(E,Eo,X,X0).
+eval(E,E,call(quote,X), X) :- !.
 eval(Ei,Eo,id(X),O) :- bind_variable(Ei,Eo,X,O),!.
-eval(Ei,Eo,p(P,A),O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var(E1,Eo,O,p(P,A1)).
+eval(Ei,Eo,p(P,A),O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var_p(P,E1,Eo,A1,O).
 eval(E,E,lambda(X,Y),lambda(X,Y)) :-!. % this is here so when X is defined as call(disj...) 
 eval(E,Eo,call(def,[call(N,A)|Y]),lambda(Ao,Yo)) :- 
     bind_lambda_vars(N,[],A,Ao,[],Av), !, bind_lambda_vars(N,E,Y,Yo,Av,_), !,
@@ -32,17 +32,20 @@ eval(E,Eo,call(conj,X),Z) :- !,eval_conj(E,Eo,X,[],Z).
 eval(_,_,call(disj,[]),_) :- !, fail.
 eval(E,Eo,call(disj,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; !,eval(E1,Eo,call(disj,T),Z)).
 eval(E,Eo,call(eval,X),Z) :- !,bind_vars(E,E1,X,X1),!, eval(E1,Eo,X1,[Z]).
-eval(E,E,call(say,[]),[]) :- !,nl.
-eval(E,Eo,call(say,[X|T]),O) :- !,bind_vars(E,E1,X,X1),!, hprint(X1), eval(E1,Eo,call(say,T),O).
+eval(E,Eo,call(say,X),[]) :- !,bind_vars(E,Eo,X,X1),!, hprint_list(X1).
 eval(E,Eo,call(spawn,X),Z) :- !,bind_vars(E,Eo,X,X1),!, spawn(Eo,X1,Z).
 eval(E,Eo,call(send,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, send(X1,Y1).
 eval(E,Eo,call(write,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, send(X1,Y1).
 eval(E,Eo,call(recv,T),Z) :- !,recv(X), !,eval_case(E,Eo,X,T,Z). 
+eval(E,Eo,call(read,[S]),X) :- !, bind_vars(E,Eo,S,St), !, read_(St,X), !. 
 eval(E,Eo,call(read,[S|T]),Z) :- !, bind_vars(E,E1,S,St), !, read_(St,X), !,eval_case(E1,Eo,X,T,Z). 
 eval(E,Eo,call(open,[S]),Z) :- !, bind_vars(E,Eo,S,St), !, open_(St,Z).
 eval(E,Eo,call(close,[S]),[]) :- !, bind_vars(E,Eo,S,St), !, close_(St).
 eval(E,Eo,call(where,[Y,X]),Z) :- !,eval([],E1,X,_), bind_lambda_vars('_',E1,Y,Yo,[],_), eval(E,Eo,Yo,Z).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval(E,Eo,X,A),Z),!.
+eval(E,Eo,call('_term',[X|Y]),Z) :-!,bind_vars(E,E1,X,X1), bind_vars(E1,Eo,Y,Y1), Z =.. [X1|Y1].
+eval(E,Eo,call('_prolog',[X|Y]),[]) :-!,bind_vars(E,E1,X,X1), bind_vars(E1,Eo,Y,Y1), Z =.. [X1|Y1], write(Z), call(Z).
+eval(E,Eo,call('_prolog',[X]),[]) :-!,bind_vars(E,Eo,X,X1), call(X1).
 eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
 eval(E,Eo,call(is,[A,B]),O) :- !,bind_vars(E,E1,A,O),!, eval(E1,Eo,B,O).
 eval(E,Eo,call(match,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1),!, bind_vars(unf,E1,E2,B,B1), !,unify(pat,E2,Eo,A1,B1,O).
@@ -62,7 +65,7 @@ eval(E,Eo,call(H,T),O) :-  \+ var(H),
     (!,eval(E,E1,H,Ho),\+H=Ho,eval(E1,Eo,call(Ho,T),O)).
 
 eval(E,Eo,[H|T],[H|To]) :- var(H),!,eval(E,Eo,T,To).
-eval(Ei,Eo,[p(P,A)|Lt],O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var(E1,E2,Po,p(P,A1)), eval(E2,Eo,Lt,T),join(Po,T,O).
+eval(Ei,Eo,[p(P,A)|Lt],O) :- !,bind_vars(Ei,E1,A,A1),!,unify_var_p_l(P,E1,E2,A1,Po),eval(E2,Eo,Lt,T),join(Po,T,O).
 eval(E,Eo,[H|T],[Ho|To]) :- eval(E,E1,H,Ho), eval(E1,Eo,T,To).
 eval(E,E,X,X) :- atomic(X),!.
 eval(E,E,X,X) :- string(X),!.
