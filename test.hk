@@ -1,0 +1,11 @@
+x is  {trace;foldr 'sub 0 [1 3]}
+say "split is " x
+
+
+
+fd is open "testtest" 'r
+#[all*] ~= [fd*]
+all is readlines [fd*]
+say all
+
+close fd
