@@ -13,10 +13,10 @@ parsel x :- {
 
 parsel x :- [],x
 
-parsei ~/^\($/ ++ t :- { ho,to is parsel t; to = ~/^\)$/ ++ o; ho,o}
-parsei ~/^\s+$/ ++ t :- once parsei t 
+parsei ~/^\($/ ++ t :- {ho,to is parsel t; ~/^\)$/ ++ o ~= to; ho,o}
+parsei ~/^ \s+ $/ ++ t :- once parsei t 
 parsei ~/^\d+:n$/ ++ t :- {number n}, t
-parsei ~/^ .:o $/ ++ t :- o,f in ops and f,t
+parsei ~/^ .:o $/ ++ t :- {o,f in ops ; f,t}
 
 
 execl [] :- []

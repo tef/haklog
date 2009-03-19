@@ -116,7 +116,7 @@ unify_p(crange,E,E,L,R,R) :- !,crange_match(L,R).
 
 %unify_p_l(+Pattern,+Env,-Env,+Args,+LeftTail,+Right,-Capture)
 %unify_p_l(P,_,_,A,L,R,_) :- writef("unify_p_l:%w(%w)|%w=%w\n",[P,A,L,R]), fail.
-unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- var(L1),!,( iterable_head_tail(R,Rh,Rt), !, unify(pat,E,E1,L1,Rh,O),unify(pat,E1,E2,Lt,Rt,_); unify(E,E2,L1,R,O)),unify(unf,E2,Eo,L2,O,_).
+unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- var(L1),!,( iterable_head_tail(R,Rh,Rt), !, unify(pat,E,E1,L1,Rh,O),unify(pat,E1,E2,Lt,Rt,_); unify(pat,E,E2,L1,R,O)),unify(unf,E2,Eo,L2,O,_).
 unify_p_l(bind,E,Eo,[p(P,A),N],Lt,R,C):- !, unify_p_l(P,E,E1,A,Lt,R,C),unify(unf,E1,Eo,N,C,_).
 unify_p_l(bind,E,Eo,[L1,L2],Lt,R,O) :- iterable_head_tail(R,Rh,Rt), !, unify(pat,E,E1,L1,Rh,O),unify(pat,E1,E2,Lt,Rt,_),unify(unf,E2,Eo,L2,O).
 
