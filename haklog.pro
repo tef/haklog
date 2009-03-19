@@ -29,9 +29,11 @@ env(E) :-
     reserved(R),
     make_environment(R,E).
 
+common(E,Eo) :- 
+    exec_file(E,"common.hk",Eo) *->[];(write('in common file'),nl,fail).
+
 run_file(F) :-
-    env(E),
-    (exec_file(E,"common.hk",Eo);write("in common file"),nl,fail),
+    env(E), common(E,Eo),
     exec_file(Eo,F,_).
 
 exec_file(E,File,Eo) :- 
@@ -54,15 +56,17 @@ read_file(I,Li,Lo) :-  get_byte(I,C), ((C = -1,!,Lo=[]); Lo=[C|L1], read_file(I,
 % interpreter
 % featuring world most useful error messages
 
-e(X) :- env(E),e(E,X,_,_).
-e(X,O) :- env(E),e(E,X,_,O).
-e(X,Eo,O) :- env(E),e(E,X,Eo,O).
+e(X) :- exec(X,_,O), hprint(O),nl.
+e(X,O) :- exec(X,_,O).
+e(X,Eo,O) :- exec(X,Eo,O).
 p(X) :- parse(X,O), write(O),nl.
 p(X,O) :- parse(X,O).
 p(X,O,_) :- parse(X,O).
 
+exec(X,E,O) :-
+    env(Ei), common(Ei,E1), exec(E1,X,E,O).
 exec(Ei,X,E,O) :- 
     (parse(X,S);write('Syntax Error'),nl,fail),!,
-    (eval(Ei,E,S,O) *-> [] ;write('Runtime Error'),nl,fail).
+    (eval(Ei,E,S,O) *-> [] ;(write('Runtime Error'),nl,fail)).
 
 

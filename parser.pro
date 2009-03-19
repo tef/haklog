@@ -178,6 +178,7 @@ build(ahead,R,p(ahead,R)) --> !.
 build(isnt,R,p(isnt,R)) --> !.
 build(quote,id(R),R) --> !.
 build(quote,R,R) --> {atom(R)},!.
+build(neg,R,Ro) --> {number(R), Ro is -R},!.
 build(C,R,call(C,R)) --> !.
 build(concat,L,R,[p(any,L), p(any,R)]) --> !.
 build(cons,L,R,[L|R]) --> !. 

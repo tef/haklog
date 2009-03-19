@@ -19,6 +19,32 @@ join _ [] :- ""
 join c [a] :- string a
 join c h,t :- {string h} ++ c ++ {join c t}
 
+hd h,_ :- h
+tl _,t :- t
+null [] :- []
+
+length [] :- 0
+length h,t :- 1 + {length t}
+
+last [x] :- x
+last _,t :- last t
+
+nth h,_ 0 :- h
+nth _,t n :- nth t {n - 1}
+
+take l 0 :- []
+take h,t n :- h,{take t {n - 1}}
+
+drop l 0 :- l
+drop _,t n :- drop t {n - 1}
+
+rev [] :- []
+rev h,t :- {rev t} ++ h
+
+abs x :- _prolog 'abs x o and o
+sin x :- _prolog 'sin x o and o
+asin x :- _prolog 'asin x o and o
+pi is {asin 1} * 2
 
 foldl f a [h] :- f a h
 foldl f a h,t :- foldl f {f a h} t

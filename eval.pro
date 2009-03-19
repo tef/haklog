@@ -45,7 +45,7 @@ eval(E,Eo,call(close,[S]),[]) :- !, bind_vars(E,Eo,S,St), !, close_(St).
 eval(E,Eo,call(where,[Y,X]),Z) :- !,bind_lambda_vars('_',E,X,Xo,[],_),eval([],E1,Xo,_), bind_lambda_vars('_',E1,Y,Yo,[],_), eval(E,Eo,Yo,Z).
 eval(E,Eo,call(every,X),Z) :- !,findall(A,eval(E,Eo,X,A),Z),!.
 eval(E,Eo,call('_term',[X|Y]),Z) :-!,bind_vars(E,E1,X,X1), bind_vars(E1,Eo,Y,Y1), Z =.. [X1|Y1].
-eval(E,Eo,call('_prolog',[X|Y]),[]) :-!,bind_vars(E,E1,X,X1), bind_vars(E1,Eo,Y,Y1), Z =.. [X1|Y1], write(Z), call(Z).
+eval(E,Eo,call('_prolog',[X|Y]),[]) :-!,bind_vars(E,E1,X,X1), bind_vars(E1,Eo,Y,Y1), Z =.. [X1|Y1],  call(Z).
 eval(E,Eo,call('_prolog',[X]),[]) :-!,bind_vars(E,Eo,X,X1), call(X1).
 eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
 eval(E,Eo,call(is,[A,B]),O) :- !,bind_vars(E,E1,A,O),!, eval(E1,Eo,B,O).
