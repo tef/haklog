@@ -8,7 +8,7 @@ open f a :- once {
 split c x :- { say c
     rl x where { say c;
     rl [] :- []
-    rl [h*? a t*] :- a = c and say "split " [h] c [t] and  h, {rl t}
+    rl [h*? a t*] :- a = c and h, {rl t}
     rl x :- [x]
     }
 }
@@ -42,18 +42,4 @@ map f h,t :- {f h},{map f t}
 
 mapstar _ [] :- []
 mapstar f h,t :- {f h*},{map f t}
-
-x is  {trace;foldr 'sub 0 [1 3]}
-say "split is " x
-
-
-
-fd is open "testtest" 'r
-#[all*] ~= [fd*]
-all is readlines [fd*]
-say all
-
-close fd
-
-
 

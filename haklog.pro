@@ -24,32 +24,45 @@ main :- current_prolog_flag(argv,X),
 
 main_ :- current_prolog_flag(argv,[_,X|_]),
         run_file(X).
-       
-run_file(File) :- 
+
+env(E) :-       
+    reserved(R),
+    make_environment(R,E).
+
+run_file(F) :-
+    env(E),
+    (exec_file(E,"common.hk",Eo);write("in common file"),nl,fail),
+    exec_file(Eo,F,_).
+
+exec_file(E,File,Eo) :- 
         prompt(_,''),
         (\+File = [] -> (
            string_to_atom(File,Name),
            open(Name,read,I)
         );
         current_input(I)),
-        execute(I).
+        read_file(I,[],Code),
+        exec(E,Code,Eo,_).
 
 clean_arguments([--],H,[H,[],[]]).
 clean_arguments([--|T],H,[H|T]).
 clean_arguments([H|T],_,O) :- clean_arguments(T,H,O).
 
-execute(I):-
-    read_file(I,[],Code),
-    exec(Code,_,_).
 
 read_file(I,Li,Lo) :-  get_byte(I,C), ((C = -1,!,Lo=[]); Lo=[C|L1], read_file(I,Li,L1)).  
 
 % interpreter
 % featuring world most useful error messages
-exec(X,E,O) :- 
+
+e(X) :- env(E),e(E,X,_,_).
+e(X,O) :- env(E),e(E,X,_,O).
+e(X,Eo,O) :- env(E),e(E,X,Eo,O).
+p(X) :- parse(X,O), write(O),nl.
+p(X,O) :- parse(X,O).
+p(X,O,_) :- parse(X,O).
+
+exec(Ei,X,E,O) :- 
     (parse(X,S);write('Syntax Error'),nl,fail),!,
-%    write(S), nl,
-    reserved(R),
-    make_environment(R,E1),
-    (eval(E1,E,S,O) *->hprint(O);write('Runtime Error'),nl,fail).
+    (eval(Ei,E,S,O) *-> [] ;write('Runtime Error'),nl,fail).
+
 
