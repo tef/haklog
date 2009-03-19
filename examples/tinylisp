@@ -4,20 +4,21 @@ foo = "(* (+ 1 2) 3)"
 
 ops = ["+",'add "*",'mul]
 
-parsel x :- {
+def: parsel x 
     h,t is parsei x 
     ho,to is parsel t
     (h,ho),to
-}
+end
 
 
 parsel x :- [],x
 
-parsei ~/^\($/ ++ t :- {ho,to is parsel t; ~/^\)$/ ++ o ~= to; ho,o}
-parsei ~/^ \s+ $/ ++ t :- once parsei t 
-parsei ~/^\d+:n$/ ++ t :- {number n}, t
-parsei ~/^ .:o $/ ++ t :- {o,f in ops ; f,t}
-
+parsei x :- case: x 
+    ~/^\($/ ++ t -> {ho,to is parsel t; ~/^\)$/ ++ o ~= to; ho,o}
+    ~/^ \s+ $/ ++ t ->  (once parsei t) 
+    ~/^\d+:n$/ ++ t -> {number n}, t
+    ~/^ .:o $/ ++ t -> {o,f in ops ; f,t}
+end
 
 execl [] :- []
 execl h,t :- {exec h},{execl t}

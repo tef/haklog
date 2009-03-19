@@ -4,10 +4,12 @@ foo = "1 2 + 5 *"
 
 ops = [ "+",'add "*",'mul ]
 
-parse ~/^\s*$/ :- []
-parse ~/^\d+:n \s*$/ ++ t :- {number n}, { once parse t}
-parse ~/^.:o \s*$/ ++ t :- {o,f in ops; f,{once parse t}}
-parse x :- say "syntax error: " x and  fail
+parse x :- case: x
+    ~/^\s*$/ -> []
+    ~/^\d+:n \s*$/ ++ t -> {number n}, { once parse t}
+    ~/^.:o \s*$/ ++ t -> {o,f in ops; f,{once parse t}}
+    x -> { say "syntax error: " x and  fail}
+end
 
 exec [] it :- it
 exec 'add,op a,b,it :- once exec op {a + b},it

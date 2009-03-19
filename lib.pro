@@ -24,8 +24,10 @@ cast_to_number(S,S) :- number(S),!.
 cast_to_number(S,O) :- expr_to_atom(S,A), atom_number(A,O),!.
 
 % todo - the parser should know these
+is_reserved(X) :- reserved(L), member(X,L).
 reserved([quote,def,fail,and,or,not,ifthen,if,case,conj,disj,eval,every, once,unf,in,
-    add,sub,div,mul,eq,le,lt,gt,ge,say,trace,spawn, recv, send
+    add,sub,div,mul,eq,le,lt,gt,ge,say,trace,spawn, recv,send, match, open, close,
+    read, write, end
     ]).
 make_environment([],[]).
 make_environment([W|T],[W-W|To]) :- make_environment(T,To).

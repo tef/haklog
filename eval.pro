@@ -8,8 +8,8 @@ evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 eval(E,E,X,X) :- var(X),!.
 eval(E,E,[],[]) :-!.
 eval(_,_,call(id(fail),_),_) :- !,fail.
-eval(E,E,id(trace),[]) :- !,trace.
-eval(_,_,id(fail),_) :- !,fail.
+eval(_,_,fail,_) :- !,fail.
+eval(E,E,trace,[]) :- !,trace.
 eval(Ei,Eo,block(X),O) :-!, eval_block(Ei,Eo,X,O).
 eval(E,Eo,call(quote,X), X0) :- !,bind_vars(E,Eo,X,X0).
 eval(Ei,Eo,id(X),O) :- bind_variable(Ei,Eo,X,O),!.
@@ -52,6 +52,7 @@ eval(E,Eo,call(concat,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B
 eval(E,Eo,call(in,[A,B]),A1) :- !,bind_vars(E,E1,A,A1), !,bind_vars(E1,Eo,B,B1),!,member(A1,B1).
 eval(E,Eo,call(H,T),O) :-  \+ var(H), 
     atom(H) -> (
+        (aug_builtin(H),!, eval_aug(E,Eo,H,T,O)); 
         (builtin(H),!, eval(E,Eo,T,To), apply(H,To,O)); 
         (!,defined(E,H,F),!,eval(E,Eo,call(F,T),O))
     );
@@ -70,8 +71,8 @@ eval(E,E,X,X) :- var(X),!.
 %eval_case(+Env,-Env,+Expression,+CaseList,-Result).
 %eval_case(_,_,A,T,_) :- writef("\ncase: [%w] [%w]\n",[A,T]),  fail.
 eval_case(E,E,_,[],[]).
-eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(pat,E1,E2,A,X1,_)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
-eval_case(Ei,Eo,A,[X],O) :- !,bind_vars(Ei,E1,X,X1) , !, unify(E1,Eo,A,X1,O).
+eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(pat,E1,E2,X1,A,_)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
+eval_case(Ei,Eo,A,[X],O) :- !,bind_vars(Ei,E1,X,X1) , !, unify(pat,E1,Eo,X1,A,O).
 
 %eval_if(+Env,-Env,+IfList,-Result).
 eval_if(E,E,[],[]).
@@ -154,15 +155,27 @@ bind_variable(E,[K-V|E],K,V):- !.
 %apply(+Name,+Args,-Output)
 % builtin functions
 % this is swi specific
-:- discontiguous builtin/1, apply/3.
+eval_aug(E,Eo,N,[A,B],O) :- list(A), list(B),!, eval_aug_l(E,Eo,N,A,B,O).
+eval_aug(E,Eo,N,[A,B],O) :- list(A),!, eval_aug_sl(E,Eo,N,B,A,O).
+eval_aug(E,Eo,N,[A,B],O) :- list(B),!, eval_aug_sl(E,Eo,N,A,B,O).
+eval_aug(E,Eo,N,[A,B],O) :- !, eval(E,E1,A,A1), eval(E1,Eo,B,B1),  apply(N,[A1,B1],O),!.
 
-builtin(add). apply(add,[X,Y],O) :- O is X+Y,!.
-builtin(sub). apply(sub,[X,Y],O) :- O is X-Y,!.
-builtin(mul). apply(mul,[X,Y],O) :- O is X*Y,!.
-builtin(div). apply(div,[X,Y],O) :- O is X/Y .
-builtin(lt). apply(lt,[X,Y],Y) :-  X <Y,!.
-builtin(le). apply(le,[X,Y],Y) :-  X =<Y,!.
-builtin(gt). apply(gt,[X,Y],Y) :-  X >Y,!.
-builtin(ge). apply(ge,[X,Y],Y) :-  X >=Y,!.
+eval_aug_l(E,E,_,[],[],[]).
+eval_aug_l(E,Eo,N,[Ha|Ta],[Hb|Tb],[Ho|To]) :- eval_aug(E,E1,N,[Ha,Hb],Ho), eval_aug_l(E1,Eo,N,Ta,Tb,To).
+
+eval_aug_sl(E,E,_,_,[],[]).
+eval_aug_sl(E,Eo,N,H,[Hb|Tb],[Ho|To]) :- eval_aug(E,E1,N,[H,Hb],Ho), eval_aug_sl(E1,Eo,N,H,Tb,To).
+
+
+:- discontiguous builtin/1, apply/3, aug_builtin/1.
+
+aug_builtin(add). apply(add,[X,Y],O) :-plus(X,Y,O),!.
+aug_builtin(sub). apply(sub,[X,Y],O) :- O is X-Y,!.
+aug_builtin(mul). apply(mul,[X,Y],O) :- O is X*Y,!.
+aug_builtin(div). apply(div,[X,Y],O) :- O is X/Y .
+aug_builtin(lt). apply(lt,[X,Y],Y) :-  X <Y,!.
+aug_builtin(le). apply(le,[X,Y],Y) :-  X =<Y,!.
+aug_builtin(gt). apply(gt,[X,Y],Y) :-  X >Y,!.
+aug_builtin(ge). apply(ge,[X,Y],Y) :-  X >=Y,!.
 builtin(number). apply(number,[X],Y) :-  cast_to_number(X,Y),!.
 builtin(string). apply(string,[X],Y) :-  cast_to_string(X,Y),!.

@@ -55,6 +55,14 @@ block(X,N) --> comment, ws, !, block(X,N).
 block(X,N) -->  ws0, !, block(X,N).
 block([],_) --> [].
 
+% a call_block is { ... }, can have terminators
+call_block([H|T],N) --> exprn(H,N), ws,!, call_block(T,N).
+call_block(X,N) --> ";", ws,!, call_block(X,N).
+call_block(X,N) --> newline, ws,!, call_block(X,N).
+call_block(X,N) --> comment, ws, !, call_block(X,N).
+call_block(X,N) -->  ws0, !, call_block(X,N).
+call_block([],_) --> [].
+
 % a list of expressions (function args)
 exprl([H|T],N) --> exprn(H,N), ws,!, exprl(T,N).
 exprl(T,N) --> comment, ws, !, exprl(T,N).
@@ -122,6 +130,7 @@ exprn(O,N) --> item(L), !, follow(L,O,N).
  
 % follow parts
 idfollow(O,X,N1) --> "(" -> {5 < N1} ,!, ws, exprl(Op, 90), ws, ")",!, follow(call(X,Op), O ,N1).
+idfollow(O,X,N1) --> ":",ws0,call_block(L,100), ws, "end",!,follow(call(X,L), O, N1). 
 idfollow(O,X,N1) --> {90 < N1},ws,\+infix(_,_,_),exprn(L1,90),!, exprl(L,90), !,follow(call(X,[L1|L]), O, N1). 
 idfollow(O,X,N1) --> !,idbuild(X,Xo), follow(Xo, O, N1). 
 
@@ -136,8 +145,8 @@ follow(O,O,_) --> !.
 
 assoc(right, A, B) :-  A =< B.
 assoc(left, A, B) :- A < B.
-idbuild(fail,fail) -->!.
-idbuild(true,true) -->!.
+idbuild(end,_) --> !, {fail}.
+idbuild(X,X) --> {is_reserved(X)},!.
 idbuild(A,id(A)) --> !.
 rxbuild(dot,id('_')) --> !.
 rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
