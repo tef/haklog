@@ -1,0 +1,52 @@
+
+open f a :- once {
+    (a->b) in ['r -> 'read 'w -> 'write 'rw -> 'update 'a -> 'append ]
+    _prolog 'open f b s
+    _term 'fd s
+}
+
+split c x :- { say c
+    rl x where { say c;
+    rl [] :- []
+    rl [h*? a t*] :- a = c and say "split " [h] c [t] and  h, {rl t}
+    rl x :- [x]
+    }
+}
+
+join _ [] :- ""
+join c [a] :- string a
+join c h,t :- {string h} ++ c ++ {join c t}
+
+
+zip x* :- case: x 
+    [] -> []
+    x -> {[h t] is zip1 x where {
+            zip1 [] :- [[] []]
+            zip1 (h,[]),tt :- { [ho to] is zip1 tt; [h,ho to]}
+            zip1 (h,t),tt :- { [ho to] is zip1 tt; [h,ho t,to]}
+        }        
+        h,{zip t*}
+    }
+end
+
+map _ [] :- []
+map f h,t :- {f h},{map f t}
+
+mapstar _ [] :- []
+mapstar f h,t :- {f h*},{map f t}
+
+
+x is  {join " " [1 2 3]}
+say "split is " x
+
+
+
+fd is open "testtest" 'r
+#[all*] ~= [fd*]
+all is readlines [fd*]
+say all
+
+close fd
+
+
+
