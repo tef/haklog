@@ -18,7 +18,7 @@ expr_to_atom(S,S) :- atom(S),!.
 expr_to_atom(I,S) :- string(I), string_to_atom(I,S),!.
 
 cast_to_string(S,O) :- expr_to_string(S,O),!.
-cast_to_string(S,O) :- atom_number(S,A), string_to_atom(O,A),!.
+cast_to_string(S,O) :- atom_number(A,S), string_to_atom(O,A),!.
 
 cast_to_number(S,S) :- number(S),!.
 cast_to_number(S,O) :- expr_to_atom(S,A), atom_number(A,O),!.
