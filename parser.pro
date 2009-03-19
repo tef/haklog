@@ -118,8 +118,11 @@ exprl(L) --> ws,exprl(L, 100).
 expr(L) --> ws,exprn(L,100).
 block(block(L)) --> ws, block(L,100).
 
+%par_exprn(Z) --> identifier(O), build(O,[],Z).
+par_exprn(O) --> exprn(O, 100), ws.
+
 %expressions
-exprn(O,N1) --> "(" ,!, ws,  exprn(Op, 100), ws, ")" , follow(Op, O ,N1).
+exprn(O,N1) --> "(" ,!, ws,  par_exprn(Op),")",!, follow(Op, O ,N1).
 exprn(O,N1) --> "[" ,!, ws,  block(Op, 90), ws, "]" , follow(Op, O ,N1).
 exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow(block(Op), O ,N1).
 exprn(O,N1) --> "~/" ,!, regex(R,100), "/" , follow(R, O ,N1).
