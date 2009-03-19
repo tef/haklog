@@ -160,22 +160,29 @@ eval_aug(E,Eo,N,[A,B],O) :- list(A),!, eval_aug_sl(E,Eo,N,B,A,O).
 eval_aug(E,Eo,N,[A,B],O) :- list(B),!, eval_aug_sl(E,Eo,N,A,B,O).
 eval_aug(E,Eo,N,[A,B],O) :- !, eval(E,E1,A,A1), eval(E1,Eo,B,B1),  apply(N,[A1,B1],O),!.
 
+eval_aug(E,Eo,N,A,O) :- list(A),!, eval_aug_sl(E,Eo,N,A,O).
+eval_aug(E,Eo,N,A,O) :- !, eval(E,Eo,A,A1), apply(N,[A1],O),!.
+
+
 eval_aug_l(E,E,_,[],[],[]).
 eval_aug_l(E,Eo,N,[Ha|Ta],[Hb|Tb],[Ho|To]) :- eval_aug(E,E1,N,[Ha,Hb],Ho), eval_aug_l(E1,Eo,N,Ta,Tb,To).
 
 eval_aug_sl(E,E,_,_,[],[]).
 eval_aug_sl(E,Eo,N,H,[Hb|Tb],[Ho|To]) :- eval_aug(E,E1,N,[H,Hb],Ho), eval_aug_sl(E1,Eo,N,H,Tb,To).
+eval_aug_sl(E,E,_,[],[]).
+eval_aug_sl(E,Eo,N,[Hb|Tb],[Ho|To]) :- eval_aug(E,E1,N,Hb,Ho), eval_aug_sl(E1,Eo,N,Tb,To).
 
 
 :- discontiguous builtin/1, apply/3, aug_builtin/1.
 
 aug_builtin(add). apply(add,[X,Y],O) :-plus(X,Y,O),!.
 aug_builtin(sub). apply(sub,[X,Y],O) :- O is X-Y,!.
+aug_builtin(neg). apply(neg,[X],O) :- O is 0 - X,!.
 aug_builtin(mul). apply(mul,[X,Y],O) :- O is X*Y,!.
 aug_builtin(div). apply(div,[X,Y],O) :- O is X/Y .
-aug_builtin(lt). apply(lt,[X,Y],Y) :-  X <Y,!.
-aug_builtin(le). apply(le,[X,Y],Y) :-  X =<Y,!.
-aug_builtin(gt). apply(gt,[X,Y],Y) :-  X >Y,!.
-aug_builtin(ge). apply(ge,[X,Y],Y) :-  X >=Y,!.
+builtin(lt). apply(lt,[X,Y],Y) :-  X <Y,!.
+builtin(le). apply(le,[X,Y],Y) :-  X =<Y,!.
+builtin(gt). apply(gt,[X,Y],Y) :-  X >Y,!.
+builtin(ge). apply(ge,[X,Y],Y) :-  X >=Y,!.
 builtin(number). apply(number,[X],Y) :-  cast_to_number(X,Y),!.
 builtin(string). apply(string,[X],Y) :-  cast_to_string(X,Y),!.

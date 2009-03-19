@@ -230,6 +230,7 @@ prefix(ahead,4) --> "&", \+ "&".
 prefix(not,93) --> "not" ,ws.
 prefix(once,93) --> "once",ws.
 prefix(quote,5) --> "'".
+prefix(neg,5) --> "-".
 prefix(eval,5) --> "`".
 
 parse(X,S) :- phrase(block(S),X),!. 
