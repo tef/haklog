@@ -6,6 +6,7 @@ evalone(Ei,Eo,X,O) :- eval(Ei,Eo,X,O),!.
 
 %eval(_,_,call(X,Y),_) :-  writef("Eval: call(%w,%w)\n",[X,Y]), fail.
 eval(E,E,X,X) :- var(X),!.
+eval(_,_,call(X,_),_) :- var(X),!,fail.
 eval(E,E,[],[]) :-!.
 eval(_,_,call(id(fail),_),_) :- !,fail.
 eval(_,_,fail,_) :- !,fail.
@@ -32,7 +33,7 @@ eval(E,Eo,call(conj,X),Z) :- !,eval_conj(E,Eo,X,[],Z).
 eval(_,_,call(disj,[]),_) :- !, fail.
 eval(E,Eo,call(disj,[H|T]),Z) :- !,(eval(E,E1,H,Z) ; !,eval(E1,Eo,call(disj,T),Z)).
 eval(E,Eo,call(eval,X),Z) :- !,bind_vars(E,E1,X,X1),!, eval(E1,Eo,X1,[Z]).
-eval(E,Eo,call(say,X),[]) :- !,bind_vars(E,Eo,X,X1),!, hprint_list(X1).
+eval(E,Eo,call(say,X),[]) :- !,bind_vars(E,Eo,X,X1),!, hprint_list(X1), nl.
 eval(E,Eo,call(spawn,X),Z) :- !,bind_vars(E,Eo,X,X1),!, spawn(Eo,X1,Z).
 eval(E,Eo,call(send,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, send(X1,Y1).
 eval(E,Eo,call(write,[X,Y]),[]) :- !,eval(E,E1,X,X1),!,bind_vars(E1,Eo,Y,Y1),!, send(X1,Y1).
@@ -75,7 +76,7 @@ eval(E,E,X,X) :- var(X),!.
 %eval_case(_,_,A,T,_) :- writef("\ncase: [%w] [%w]\n",[A,T]),  fail.
 eval_case(E,E,_,[],[]).
 eval_case(Ei,Eo,A,[call(ifthen,[X,Y])|T],O) :- !, ( ( bind_vars(Ei,E1,X,X1), !, unify(pat,E1,E2,X1,A,_)) *-> eval(E2,Eo,Y,O) ; eval_case(Ei,Eo,A,T,O)).
-eval_case(Ei,Eo,A,[X],O) :- !,bind_vars(Ei,E1,X,X1) , !, unify(pat,E1,Eo,X1,A,O).
+eval_case(Ei,Eo,_,[X],O) :- !,bind_vars(Ei,E1,X,X1) ,!,eval(E1,Eo,X1,O).
 
 %eval_if(+Env,-Env,+IfList,-Result).
 eval_if(E,E,[],[]).

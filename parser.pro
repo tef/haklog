@@ -13,7 +13,7 @@ digits([]) --> [].
 digit(D) --> [D], {code_type(D, digit)},!.
 
 identifier(A) -->  csym(C),csyms(N), {string_to_atom([C|N],A)},!. 
-csyms([H|T]) --> csym(H), csyms(T).
+csyms([H|T]) --> csym_(H), csyms(T).
 csyms([]) --> [].
 csym(C) --> [C], {code_type(C, csymf)}.
 csym_(C) --> [C], {code_type(C, csym)}.
@@ -73,6 +73,9 @@ regex(T,N) --> "^",ws,!,rx_list(T,N).
 regex([p(zany,id('_'))|T],N) --> ws,rx_list(T,N),!.
 regex([],_) --> ws.
 
+rxm_list([H|T],N) --> rx(H,N), ws,!, rx_list(T,N).
+rxm_list([],_) -->  ws.
+
 class_list([H|T]) --> rx_class(H), class_list(T).
 class_list([]) --> ws.
 
@@ -126,6 +129,7 @@ exprn(O,N1) --> "(" ,!, ws,  par_exprn(Op),")",!, follow(Op, O ,N1).
 exprn(O,N1) --> "[" ,!, ws,  block(Op, 90), ws, "]" , follow(Op, O ,N1).
 exprn(O,N1) --> "{" ,!, ws, block(Op, 100), ws, "}" , follow(block(Op), O ,N1).
 exprn(O,N1) --> "~/" ,!, regex(R,100), "/" , follow(R, O ,N1).
+exprn(O,N1) --> "m/" ,!, rxm_list(R,100), "/" , follow(R, O ,N1).
 exprn(O,N1) --> prefix(Op, N),!, { N =< N1 }, exprn(R,N), !, build(Op,R,Z), follow(Z, O, N1).
 exprn(O,N1) --> \+ infix(_,_,_), %\+ postfix(_,_),
                 identifier(X), !, idfollow(O,X,N1). 
@@ -152,7 +156,7 @@ idbuild(end,_) --> !, {fail}.
 idbuild(X,X) --> {is_reserved(X)},!.
 idbuild(A,id(A)) --> !.
 rxbuild(dot,id('_')) --> !.
-rxbuild(nl,p(any, [13, p(maybe,[10]) ] )) --> !.
+rxbuild(nl,'\n') --> !.
 rxbuild(N,p(N,[])) --> !.
 rxbuild(choice,X,p(choice,X)) --> !.
 rxbuild(class,X,p(class,X)) --> !.
@@ -206,7 +210,7 @@ infix(gt,right,60) --> ">".
 infix(lt,right,60) --> "<".
 infix(cons,right,55) --> ",".
 infix(bind,left,75) --> ":".
-infix(where,left,93) --> "where".
+infix(where,right,93) --> "where".
 infix(concat,right,57) --> "++".
 infix(add,right,50) --> "+".
 infix(sub,right,50) --> "-", ws0.

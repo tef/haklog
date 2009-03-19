@@ -1,7 +1,6 @@
 % horrible printer. like pretty print but ugly
 hprint(T) :- hprint_(T),!.
 hprint_(H) :- var(H),!, write(H).
-hprint_([]).
 hprint_([H|T]) :- write('['),hprint_list([H|T]), write(']').
 hprint_(call(X,Y)) :- write('('),hprint_(X),write('('),hprint_list(Y),write('))').
 hprint_(block(X)) :- write('{'),hprint_block(X),write('}').
