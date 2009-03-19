@@ -13,10 +13,18 @@ split c x :- { say c
     }
 }
 
+readlines x :- split "\n" x
+
 join _ [] :- ""
 join c [a] :- string a
 join c h,t :- {string h} ++ c ++ {join c t}
 
+
+foldl f a [h] :- f a h
+foldl f a h,t :- foldl f {f a h} t
+
+foldr f a [h] :- f a h
+foldr f a h,t :- f a {foldr f h t}
 
 zip x* :- case: x 
     [] -> []
@@ -35,8 +43,7 @@ map f h,t :- {f h},{map f t}
 mapstar _ [] :- []
 mapstar f h,t :- {f h*},{map f t}
 
-
-x is  {join " " [1 2 3]}
+x is  {trace;foldr 'sub 0 [1 3]}
 say "split is " x
 
 
