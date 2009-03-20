@@ -18,43 +18,39 @@ done:
     x^l is x* , l = length(x)
     x^? is the non greedy version
     x is y 
-    
+    moved patterns into own operator =~ out of =
+    moved reserved words into parser.
+    standard library for lists/functions
+    aggregate operators  3 + list is  {every (X in list && 3 + X)}
+    simple file i/o  
+    message passingr,? erlang-like concurrency 
 
 next:
 
     numerical ranges with ..
+    range matches 0,1 1: 3..4
     := ?
-    move patterns into own operator =~ out of =
     add ==~
-    
+    [] lookup foo[fofo]
+     foo[a[b]] is z=  foo[a] and z[b]; z maybe x / 'foo / 'y hmmm -> 'foo->l in x ;'y->v in l; v  
+    string interpolation, """ """ strings
+    make 3+4 work
 bugs:
-    iron out bugs in unification with patterns
-    isn't should match with empty list
-    move reserved words into parser.
-    f: use env - test #! mechanism
-    f: .:x matches against []Â§
 
 housekeeping:
     pretty printer
-    repl
-    standard library for lists/functions
+    repl - seperate thread using mutex for locks or breaks
     prelude ?
 
 data structures:
-    string operations ? more sugar ? 
     mutable variables
     meta-types? classes/objects? alternatively meta lists - things with list semantics + others
 
-
 possible language features:
-    aggregate operators  3 + list is  {every (X in list && 3 + X)}
-    message passing? erlang-like concurrency ? modules ? libraries?
-    i/o ? 
+    modules ? libraries? perl like package declaration, python like modules from import import
 
 syntax:
     xml literals? url literals?
-    range matches 0,1 1: 3..4
-    [] lookup foo[fofo] 
     xpath ?
 
 --
