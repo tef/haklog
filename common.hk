@@ -43,6 +43,7 @@ rev h,t :- {rev t} ++ h
 
 abs x :- _prolog 'abs x o and o
 sin x :- _prolog 'sin x o and o
+pow x y :- _prolog 'pow x y o and o
 asin x :- _prolog 'asin x o and o
 pi is {asin 1} * 2
 

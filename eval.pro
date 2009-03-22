@@ -48,8 +48,9 @@ eval(E,Eo,call('_term',[X|Y]),Z) :-!,bind_vars(E,E1,X,X1), bind_vars(E1,Eo,Y,Y1)
 eval(E,Eo,call('_prolog',[X|Y]),[]) :-!,bind_vars(E,E1,X,X1), bind_vars(E1,Eo,Y,Y1), Z =.. [X1|Y1],  call(Z).
 eval(E,Eo,call('_prolog',[X]),[]) :-!,bind_vars(E,Eo,X,X1), call(X1).
 eval(E,Eo,call(once,T),A) :- !,eval(E,Eo,T,A),!.
-eval(E,Eo,call(is,[A,B]),O) :- !,bind_vars(E,E1,A,O),!, eval(E1,Eo,B,O).
-eval(E,Eo,call(match,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1),!, bind_vars(unf,E1,E2,B,B1), !,unify(pat,E2,Eo,A1,B1,O).
+eval(E,Eo,call(to,[A,B]),O) :- !,bind_vars(E,E1,A,A1), bind_vars(E1,Eo,B,B1), between(A1,B1,O).
+eval(E,Eo,call(is,[A,B]),O) :- !,bind_vars(E,E1,A,O), eval(E1,Eo,B,O).
+eval(E,Eo,call(match,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1), bind_vars(unf,E1,E2,B,B1), unify(pat,E2,Eo,A1,B1,O).
 eval(E,Eo,call(unf,[A,B]),O) :- !,bind_vars(unf,E,E1,A,A1),!, bind_vars(unf,E1,E2,B,B1), !,unify(unf,E2,Eo,A1,B1,O).
 eval(E,Eo,call(eq,[A,B]),O) :- !,bind_vars(eq,E,E1,A,A1),!, bind_vars(eq,E1,_,B,B1), !,unify(unf,E,Eo,A1,B1,O).
 eval(E,Eo,call(concat,[A,B]),O) :- !,bind_vars(E,E1,A,A1),!, bind_vars(E1,E2,B,B1), !,eval(E2,E3,A1,A2), eval(E3,Eo,B1,B2), concat(A2,B2,O).

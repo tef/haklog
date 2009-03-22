@@ -8,7 +8,7 @@
 % tokens
 number(N) --> digit(D0), digits(D), { number_codes(N, [D0|D]) },!.
 digits([D|T]) --> ("_" -> !; []),digit(D), digits(T).
-digits(O) --> ".",!, {append(".",T,O)}, digits(T).
+digits(O) --> ".",digit(D0),!, {append(".",[D0|T],O)}, digits(T).
 digits([]) --> [].
 digit(D) --> [D], {code_type(D, digit)},!.
 
@@ -107,6 +107,10 @@ rxescapes(O) --> "n",!,rxbuild(nl,O).
 rxescapes(O) --> [X], {member(X,"wWsSdD"), string_to_atom([X],A)},!,rxbuild(class,A,O).
 rxescapes(O) --> [X], {member(X,"^$*+.-[](){}\\"), string_to_atom([X],O)},!.
 
+wbreak --> ws0.
+wbreak --> \+ item(_);\+ number(_).
+
+lookahead(X),[X] --> [X].
 
 
 rxfollow(L,O,N1) --> ((postfix(Op,N), regexop(Op)) -> {N =< N1}), !, rxbuild(Op,L,Z), rxfollow(Z, O, N1).
@@ -145,7 +149,7 @@ idfollow(O,X,N1) --> !,idbuild(X,Xo), follow(Xo, O, N1).
 % to follow, to check for infix stuff (that contains it)
 follow(L,O,N1) --> "[",!, ws, exprl(Op, 100), ws, "]",! , follow(index(L,Op), O ,N1).
 follow(L,O,N1) --> "(",!, ws, exprl(Op, 90), ws, ")",!, follow(call(L,Op), O ,N1).
-follow(L,O,N1) --> (postfix(Op,N) -> {N =< N1}), !, build(Op,L,Z), follow(Z, O, N1).
+follow(L,O,N1) --> (postfix(Op,N) -> {N =< N1}), wbreak, !, build(Op,L,Z), follow(Z, O, N1).
 follow(L,O,N1) --> {90 < N1},ws,"$" ,!, ws, exprl(Op, 90), ws,!, follow(call(L,Op), O ,N1).
 follow(L,O,N1) --> ws, (infix(Op,As,N) -> {assoc(As,N, N1)}), !,ws, exprn(R,N),!, build(Op,L,R,Z), follow(Z, O, N1).
 follow(O,O,_) --> !.
@@ -199,6 +203,7 @@ regexop(zany) -->!.
 regexop(choice) -->!.
 
 infix(def, right, 99) --> ":-".
+infix(to,right,62) --> "..".
 infix(is, right, 94) --> "is".
 infix(match, right, 81) --> "~=".
 infix(matchr, left, 82) --> "=~".
@@ -213,6 +218,7 @@ infix(cons,right,55) --> ",".
 infix(bind,left,75) --> ":".
 infix(where,right,93) --> "where".
 infix(concat,right,57) --> "++".
+infix(pow,right,44) --> "**".
 infix(add,right,50) --> "+".
 infix(sub,right,50) --> "-", ws0.
 infix(mul,right,45) --> "*".
