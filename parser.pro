@@ -108,9 +108,15 @@ rxescapes(O) --> [X], {member(X,"wWsSdD"), string_to_atom([X],A)},!,rxbuild(clas
 rxescapes(O) --> [X], {member(X,"^$*+.-[](){}\\"), string_to_atom([X],O)},!.
 
 wbreak --> ws0.
+wbreak --> lookahead("("), !,{fail}.
+wbreak --> lookahead(")").
+wbreak --> lookahead("{"), !,{fail}.
+wbreak --> lookahead("}").
+wbreak --> lookahead("["), !,{fail}.
+wbreak --> lookahead("]").
 wbreak --> \+ item(_);\+ number(_).
 
-lookahead(X),[X] --> [X].
+lookahead(X),X --> X.
 
 
 rxfollow(L,O,N1) --> ((postfix(Op,N), regexop(Op)) -> {N =< N1}), !, rxbuild(Op,L,Z), rxfollow(Z, O, N1).

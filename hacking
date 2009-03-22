@@ -24,17 +24,17 @@ done:
     aggregate operators  3 + list is  {every (X in list && 3 + X)}
     simple file i/o  
     message passingr,? erlang-like concurrency 
-
+    numerical ranges with ..
+    2 ** 3
+    make 3+4 work
 next:
 
-    numerical ranges with ..
     range matches 0,1 1: 3..4
     := ?
     add ==~
     [] lookup foo[fofo]
      foo[a[b]] is z=  foo[a] and z[b]; z maybe x / 'foo / 'y hmmm -> 'foo->l in x ;'y->v in l; v  
     string interpolation, """ """ strings
-    make 3+4 work
 bugs:
 
 housekeeping:
