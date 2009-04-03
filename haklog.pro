@@ -1,11 +1,11 @@
 #!/usr/bin/swipl -q -t start -f 
 
-hk :- consult('parser.pro'),
-    consult('eval.pro'),
-    consult('lib.pro'),
-    consult('unify.pro'),
-    consult('print.pro'),
-    consult('print.pro').
+hk :- consult('code/parser.pro'),
+    consult('code/eval.pro'),
+    consult('code/lib.pro'),
+    consult('code/unify.pro'),
+    consult('code/print.pro'),
+    consult('code/print.pro').
 
 :- hk.
 
@@ -30,7 +30,7 @@ env(E) :-
     make_environment(R,E).
 
 common(E,Eo) :- 
-    exec_file(E,"common.hk",Eo) *->[];(write('in common file'),nl,fail).
+    exec_file(E,"code/common.hk",Eo) *->[];(write('in common file'),nl,fail).
 
 run_file(F) :-
     env(E), common(E,Eo),

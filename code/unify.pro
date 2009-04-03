@@ -27,6 +27,7 @@ unify(_,_,_,[H|_],[],_) :- var(H) , !, fail.
 
 unify(unf,E,Eo,[Pa|Lt],[Pb|Rt],[Po|Ot]) :- \+var(Pa), Pa = p(Pl,Al),\+var(Pb), Pb = p(Pr,Ar), pattern_combine(Pl,Pr,Al,Ar,Po), !, unify(unf,E,Eo,Lt,Rt,Ot).
 unify(pat,E,Eo,[Pa|Lt],Ro,R) :- \+var(Pa), Pa = p(P,A), !, unify_var(E,E1,R,Ro), unify_p_l(P,E1,Eo,A,Lt,R,_).
+unify(pat,E,Eo,[H|Lt],Ro,R) :- \+var(H), H = call(Q,A), \+var(Q), Q = quote, \+var(A), !, unify(unf,E,Eo,[A|Lt],Ro,R).
 
 unify(_,E,E,S,A,S) :- string(S), expr_to_string(A,S1),!, S1=S.
 unify(_,E,E,A,S,S) :- string(S), expr_to_string(A,S1),!, S1=S.
