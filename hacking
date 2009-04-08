@@ -1,39 +1,35 @@
 done:
-    case statements? 
-    if statements
-    xor
-    closures
-    anonymous functions 
-    foo() syntax
-    y combinator
-    maybe, $ call syntax
+    case statements?  if statements xor closures anonymous functions 
+    foo() syntax y combinator maybe, $ call syntax
     make unify return value, avoid pattern in value
     partial pretty printer 
-    strings are lists
-    patterns in strings
+    strings are lists patterns in strings
     regex character classes and ranges
-    ++ is append
-    pattern composition
+    ++ is append pattern composition
     == is equality does not instanciate variables
     x^l is x* , l = length(x)
-    x^? is the non greedy version
-    x is y 
+    x^? is the non greedy version x is y 
     moved patterns into own operator =~ out of =
     moved reserved words into parser.
     standard library for lists/functions
     aggregate operators  3 + list is  {every (X in list && 3 + X)}
     simple file i/o  
     message passingr,? erlang-like concurrency 
-    numerical ranges with ..
-    2 ** 3
+    numerical ranges with ..  2 ** 3
     make 3+4 work
+
 next:
+    cyclic lists? omega operator? co-inductive logic for haklog
 
 speed:
     use assoc lists for environment
     pure io for parsing - will speed it up
+forward:
     prolog translation
+    use linear state threads to flatten code
+
 operators
+    c
     range matches 0,1 1: 3..4
     := ? alias for is ? alias for set ?
     need to doo foo[x] 
