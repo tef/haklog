@@ -148,7 +148,7 @@ exprn(O,N) --> item(L), !, follow(L,O,N).
 % follow parts
 idfollow(O,X,N1) --> "(" -> {5 < N1} ,!, ws, exprl(Op, 90), ws, ")",!, follow(call(X,Op), O ,N1).
 idfollow(O,X,N1) --> ":",ws0,call_block(L,100), ws, "end",!,follow(call(X,L), O, N1). 
-idfollow(O,X,N1) --> {90 < N1},ws,\+infix(_,_,_),exprn(L1,90),!, exprl(L,90), !,follow(call(X,[L1|L]), O, N1). 
+idfollow(O,X,N1) --> {90 < N1},ws0,\+infix(_,_,_),exprn(L1,90),!, exprl(L,90), !,follow(call(X,[L1|L]), O, N1). 
 idfollow(O,X,N1) --> !,idbuild(X,Xo), follow(Xo, O, N1). 
 
 % every expression is ast-fragment then a follow. the fragment is passed
@@ -226,7 +226,7 @@ infix(where,right,93) --> "where".
 infix(concat,right,57) --> "++".
 infix(pow,right,44) --> "**".
 infix(add,right,50) --> "+".
-infix(sub,right,50) --> "-", ws0.
+infix(sub,right,50) --> "-".
 infix(mul,right,45) --> "*".
 infix(div,right,45) --> "/".
 infix(conj,right,95) --> "&&". 
