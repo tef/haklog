@@ -1,0 +1,165 @@
+a plan for native haklog compilation
+====================================
+
+A vision for a finished compiler, not to be confused with a plan to get there.
+
+prolog has traditionally seen poor adoption because of piss poor speed, haklog 
+is much less deterministic, but still heavily dynamic. any interpretation will
+come at a heavy runtime penalty.
+
+we want to pass this burden to compile time as much as possible. the end goal
+is native code.
+
+haklog compiler outline
+-----------------------
+
+parse haklog into abstract syntax tree -
+    no re-writing, minimal optimization, constant folding
+
+translate ast into core haklog -
+    a well defined tree ir with explicit: outputs, unification, closures etc.
+    the core language has simple operators with well defined semantics
+
+the following passes will likely have to be iterative, building from
+the bottom up, co-operatively.
+
+    inference phases - 
+        mode inference, type inference
+        region inference/escape analysis - essentially explicit 
+        allocation deallocation
+        these will be based on the notion of success types - we try to
+        exclude some wrongly typed code, but we cannot exclude all.
+        
+        i.e we try to be as specific as we can, if we can - 
+            reducing types from any() to specific types like int()
+            turning heap allocations into specific allocations (stack/region)
+        but fall back to simple types when unknown
+
+    possible optimization passes on the core subset -
+        rewriting comparisons to be optimal, avoid non-determinism.
+        partial evaluation of the core subset through term re-writing
+        based on compile time type information, e.g:
+            decomposing unification
+
+now at this point we should have two things for each function,
+    a signature -
+        a record of all the information which will need to be provided
+        at runtime to execute i.e types, modes and regions.
+        and the constraints they need to satisfy
+    and a function -
+        hopefully optimized as much as possible with static information
+
+top down phase - compilation to machine code
+    if we know the signature values, we can compile the function into machine code
+
+    we can then do global analysis, from the main program infer the component types,
+    and generate a function for each required signature. 
+
+    essentially we treat every function as a generic function with respect to the types
+    (and modes, etc) of its arguments and output, with the exception of main()
+
+    we can have a compiler that given a core haklog function and signature values,
+    compiles machine code for that function.
+
+
+
+
+compilation in depth 
+--------------------
+one approach is to split the compilation process into two:
+    
+    we have a transformer that given a core haklog program and signature values
+    returns an exactly typed haklog program
+    (we can generate this program through partial evaluation (futamura projection))
+    
+    and a second that takes an exactly typed haklog program and compiles
+    it to machine code.
+
+however, this approach can be slow in practice, although it is frequently
+the standard approach for run time code generation. alternatively, the fabius ml 
+compiler achieves rtcg in  novel way, to produce machine code that generates machine
+code at runtime.
+
+we can seperate code into runtime and staged segments, and then proceed to compile
+each step to machine code. 
+
+we we introduce an emit instruction, we can transform the function initially into
+a series of emit statements, and then re-write them into haklog code that produces
+them dependant on signature values.
+
+we can then procede to compile not only the haklog functions, but the emit instructions 
+too to assembly, peforming things like register colouring on both the core and the staged code.
+
+this is not new territory,  metaocaml is an example of a staged compiler.
+
+essentially we transform haklog into a statically typed language that produces statically
+typed code at runtime.
+
+fun aside: by using the type system to declare runtime/compile time information
+we effectively have a multi stage language, albeit most type systems are simple.
+
+if we then want to introduce matrix operation optimizations, we need to move information
+out of values and into types, i.e. dependant types.  we can then introduce abstract 
+dependant data types, to get compile time optimizations.
+
+i.e the type system is a constraint system on the code generation
+
+idiomatic compilation
+=====================
+we want to remove all of the functional idioms from the code as we translate it to
+machine code.
+
+this means removing recursion (tail), and transformation into iteration.
+we also need to do liveness analysis, to identify re-usable values.
+we should be able to convert pure functions into destructive ones
+for at least a given set of operations - i.e accumulators.
+
+we should be able to infer linear types and unique types too to aid this
+i.e unique types guarantee no references to it, but a linear type means
+no other references are made.
+
+ie we can transform existing mutable operations into unique types and 
+de-compose them to working on a dcg like basis
+
+however, if we can infer linear types, we should be able to 
+
+
+
+
+core haklog
+===========
+notion: everything is explicit - no unification in arguments
+inspired by binprolog, core erlang, and "inventing a prolog"
+
+outputs are explicit, operations chained together with binary operators
+
+def(X,Y,Z) is(X,Y,Z) 
+or(X,Y) conj(X,Y) if(X,Y) not(X) xor(X,Y)
+add(X,Y,Z)
+let(X,Y)
+
+defined in prolog syntax, possible operator overloading for sanity reasons.
+
+we define all operations on core haklog as re-writing
+
+
+rough roadmap
+=============
+define core haklog in prolog
+translate haklog into core
+translate core into prolog
+term ordering optimizations
+bottom up inference
+top down propagation -
+compile typed haklog into ml , c?
+compile core haklog into metaml ?, tickc ?
+
+
+
+
+
+
+
+
+
+

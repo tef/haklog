@@ -18,12 +18,16 @@ done:
     numerical ranges with ..  2 ** 3
     make 3+4 work
 
-next:
+
+
+
+crazy next:
     cyclic lists? omega operator? co-inductive logic for haklog
 
-speed:
+prolog tweaks:
     use assoc lists for environment
-    pure io for parsing - will speed it up
+    pure io for parsing - will speed it ups
+
 forward:
     prolog translation
     use linear state threads to flatten code
@@ -36,38 +40,37 @@ operators
      foo[a[b]] is z=  foo[a] and z[b]; z maybe x / 'foo / 'y hmmm -> 'foo->l in x ;'y->v in l; v  
     string interpolation, """ """ strings
     change == to evaluating operator
+
 data types:
     sets? union intersect?
-    mutable variables
+    mutable variables -- x! - essentially unique references
     everything isn't an object - everything one of a few basic types:
         scalar, collection, function, expression (byrd points) 
      
 patterns/variable quantifiers
     ' quoting to escape patterns - quoting to escape values? ::- define a function that returns a function
+    '{} escape block
     closure operator i.e prevent binding foo `x
 features:
-    imports
+    imports, modules, namespaces
+    prolog operator predicate
     operator overloading? X + Y :- X - Y could work?
 control flow?
     instead of i/o ? build repl on top of it, use threading hack
     suspended execution? thing is @foo x y lazy evaluation essentialy. x is thing 
-    avoid dispatch loops or make them neat ?
     
 housekeeping:
     pretty printer
     repl - seperate thread using mutex for locks or breaks
     prelude ?
  
-data structures:
-
-possible language features:
-    modules ? libraries? perl like package declaration, python like modules from import import
 
 syntax:
     xml literals? url literals?
     xpath ?
 
 --
+TODO: document this shit
 pattern matching.
 
 peg operators;
@@ -97,13 +100,6 @@ what about asynchronous message handling? register handlers instead of
 writing a dispatch loop over and over again?
 
 define a process
-
-lazy evaluation through suspended execution
-
-i.e thing = @foo 
-thing x y x
-thing is  @foo x
-
 
 
 strings:
