@@ -4,15 +4,18 @@ foo = "(* (+ 1 2) 3)"
 
 ops = ["+",'add "*",'mul]
 
-def: parsel x 
+# parse a list of values
+parsel x  :- {
     h,t is parsei x 
     ho,to is parsel t
     (h,ho),to
-end
+}
 
 
 parsel x :- [],x
 
+# parse an item
+# note multiline foo: ... end function call def.
 parsei x :- case: x 
     ~/^\($/ ++ t -> {ho,to is parsel t; ~/^\)$/ ++ o ~= to; ho,o}
     ~/^ \s+ $/ ++ t ->  (once parsei t) 
@@ -20,6 +23,7 @@ parsei x :- case: x
     ~/^ .:o $/ ++ t -> {o,f in ops ; f,t}
 end
 
+# exec a list of values
 execl [] :- []
 execl h,t :- {exec h},{execl t}
 
