@@ -1,3 +1,8 @@
+lo and behold the second system!
+
+whoops.
+
+
 a plan for native haklog compilation
 ====================================
 
@@ -145,12 +150,13 @@ we define all operations on core haklog as re-writing
 
 rough roadmap
 =============
-define core haklog in prolog
-translate haklog into core
+change parser to produce core subset
+change interpreter to use core subset, rather than existing ast
 translate core into prolog
 term ordering optimizations
-bottom up inference
-top down propagation -
+bottom up inference / top down propagation -
+translation to mercury?
+
 compile typed haklog into ml , c?
 compile core haklog into metaml ?, tickc ?
 

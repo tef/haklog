@@ -1,3 +1,56 @@
+next steps:
+    test harness
+    documentation 
+
+    together - some way of saying "this does this" and making sure the examples execute?
+    docstrings ?
+    doctests ?
+
+    $test "addition" : {
+        """ toot toot parp parp """
+        1+2 == 3
+    } 
+
+    $log "foooo"
+
+new semantics:
+
+    record/hash types as native type ?  "foo" : bar  
+        lua sematics list part and an assoc part (with ordering)
+        index operator
+
+    mutable variable  + := operator
+    
+    let operator as inverted where.
+
+    global variables $foo 
+        $test - run a test
+        $log -  log somethin (stderr by default)
+        $stdin, $stdout, $stderr
+        $args
+
+        where clause awesomeness.
+
+        spawn/exec? some method of inheriting
+
+    need way of:
+       caputring blocks in an unf -- special form '{ ?
+       caputring the var closure of an expression
+       
+    remove message passing and introduce stdin, stdout, stderr as standard 
+    pipes (really queues) and |>  as into a file and  |< as from a file and | as pipe
+
+    named shared state with put/get/delete semantics - using url as names
+
+    need shell like primitives - say, warn, cat, write, read, print
+            need some way of saying x = get foo and dump get foo or `get foo` hmm.
+                maybe print {get foo} :3
+    
+        
+    imports? sharing
+
+    exceptions for non-local exits
+
 done:
     case statements?  if statements xor closures anonymous functions 
     foo() syntax y combinator maybe, $ call syntax
@@ -20,7 +73,6 @@ done:
 
 
 
-
 crazy next:
     cyclic lists? omega operator? co-inductive logic for haklog
 
@@ -33,7 +85,6 @@ forward:
     use linear state threads to flatten code
 
 operators
-    c
     range matches 0,1 1: 3..4
     := ? alias for is ? alias for set ?
     need to doo foo[x] 
@@ -44,13 +95,16 @@ operators
 data types:
     sets? union intersect?
     mutable variables -- x! - essentially unique references
-    everything isn't an object - everything one of a few basic types:
-        scalar, collection, function, expression (byrd points) 
      
 patterns/variable quantifiers
     ' quoting to escape patterns - quoting to escape values? ::- define a function that returns a function
     '{} escape block
     closure operator i.e prevent binding foo `x
+
+    ' means treat as unify_var in eval context - or stop eval on block.
+    ` means treat as eval in unf context - i.e { }
+
+
 features:
     imports, modules, namespaces
     prolog operator predicate

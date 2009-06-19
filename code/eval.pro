@@ -23,7 +23,8 @@ eval(E,Eo,call(def,[id(N)|Y]),lambda([],Yo)) :-
     bind_lambda_vars(N,E,Y,Yo,[],_), !,
     def_variable(E,Eo,N,lambda([],Yo)),!.
 eval(E,Eo,call(and,[X,Y]),Z) :-!, evalone(E,E1,X,_),!,eval(E1,Eo,Y,Z).
-eval(E,Eo,call(or,[X,Y]),Z) :- !,(evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z)).
+%eval(E,Eo,call(or,[X,Y]),Z) :- !,(evalone(E,Eo,X,Z);!, eval(E,Eo,Y,Z)).
+eval(E,Eo,call(or,[X,Y]),Z) :- !,((evalone(E,Eo,X,Z) *-> true);eval(E,Eo,Y,Z)).
 eval(E,Eo,call(xor,[X,Y]),Z) :- !,((eval(E,Eo,X,Z) *-> true);eval(E,Eo,Y,Z)).
 eval(E,E,call(not,X),[]) :- \+ eval(E,_,X,_), !.
 eval(E,Eo,call(ifthen,[X,Y]),Z) :- !,((evalone(E,E1,X,_) -> (!, eval(E1,Eo,Y,Z))); !,Z =[]).
